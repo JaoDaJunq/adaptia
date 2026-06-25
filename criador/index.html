@@ -1204,7 +1204,8 @@
       isSaving: false,
       saveError: "",
       saveStatus: "",
-      globalError: ""
+      globalError: "",
+      user: null
     };
 
     function byName(list, name) {
@@ -1306,18 +1307,33 @@
     }
 
     async function initApp() {
-      const savedCode = localStorage.getItem(STORAGE_KEY);
-      if (!savedCode) {
-        state.screen = "wizard";
-        render();
-        return;
-      }
-
       state.screen = "loading";
-      state.globalError = "Buscando ficha salva...";
+      state.globalError = "Verificando login da Adaptia...";
       render();
 
       try {
+        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+        if (sessionError) throw sessionError;
+        state.user = session?.user || null;
+
+        if (!state.user) {
+          state.screen = "auth-required";
+          state.globalError = "Você precisa entrar na sua conta Adaptia antes de criar personagem.";
+          render();
+          return;
+        }
+
+        const savedCode = localStorage.getItem(STORAGE_KEY);
+        if (!savedCode) {
+          state.screen = "wizard";
+          state.globalError = "";
+          render();
+          return;
+        }
+
+        state.globalError = "Buscando ficha salva...";
+        render();
+
         const { data, error } = await supabaseClient
           .from("personagens")
           .select("*")
@@ -1334,13 +1350,21 @@
           return;
         }
 
+        if (data.owner_id && data.owner_id !== state.user.id) {
+          localStorage.removeItem(STORAGE_KEY);
+          state.screen = "wizard";
+          state.globalError = "A ficha salva neste navegador pertence a outra conta. Crie uma nova ficha ou importe a antiga pelo Hub.";
+          render();
+          return;
+        }
+
         state.savedCandidate = data;
         state.screen = "resume";
         state.globalError = "";
         render();
       } catch (error) {
-        state.screen = "wizard";
-        state.globalError = `Não consegui carregar sua ficha salva: ${error.message || error}`;
+        state.screen = "auth-required";
+        state.globalError = `Não consegui verificar seu login: ${error.message || error}`;
         render();
       }
     }
@@ -1441,7 +1465,7 @@
 
     function renderProgress() {
       const progressCard = document.querySelector(".progress-card");
-      if (state.screen === "loading" || state.screen === "resume") {
+      if (state.screen === "loading" || state.screen === "resume" || state.screen === "auth-required") {
         progressCard && progressCard.classList.add("hidden");
         return;
       }
@@ -1473,6 +1497,11 @@
         return;
       }
 
+      if (state.screen === "auth-required") {
+        app.innerHTML = renderAuthRequiredStep();
+        return;
+      }
+
       if (state.screen === "resume") {
         app.innerHTML = renderResumeStep();
         bindStepEvents();
@@ -1486,6 +1515,21 @@
       if (state.step === 6 && !state.loadedCharacter && !state.savedCharacter && !state.isSaving) {
         window.setTimeout(saveCharacterIfNeeded, 0);
       }
+    }
+
+    function renderAuthRequiredStep() {
+      return `
+        <section class="panel">
+          <div class="panel-header">
+            <h2>🔐 Entre na Adaptia primeiro</h2>
+            <p>O Criador agora salva personagens vinculados ao seu usuário. Faça login no Hub e volte para criar sua ficha.</p>
+          </div>
+          <div class="status-box error show">${escapeHTML(state.globalError || "Login obrigatório.")}</div>
+          <div class="resume-actions" style="margin-top:14px;">
+            <a class="btn btn-primary" href="../">Ir para o Hub e fazer login</a>
+          </div>
+        </section>
+      `;
     }
 
     function renderLoadingStep() {
@@ -1871,6 +1915,7 @@
       } : null;
 
       return {
+        owner_id: state.user ? state.user.id : null,
         codigo_ficha: code,
         nome: state.name,
         linhagem: state.lineage,
@@ -1893,6 +1938,11 @@
 
     async function saveCharacterIfNeeded() {
       if (state.isSaving || state.savedCharacter || state.loadedCharacter) return;
+      if (!state.user) {
+        state.saveError = "Você precisa estar logado para salvar a ficha. Volte ao Hub e entre na sua conta.";
+        render();
+        return;
+      }
       state.isSaving = true;
       state.saveStatus = "Salvando ficha no Supabase...";
       state.saveError = "";

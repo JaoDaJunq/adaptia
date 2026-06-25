@@ -196,6 +196,10 @@
     }
 
     .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
       width: 100%;
       min-height: 58px;
       border: 0;
@@ -614,6 +618,8 @@
       capitulo: null,
       currentAction: null,
       summary: null,
+      user: null,
+      characters: [],
       channels: []
     };
 
@@ -784,29 +790,32 @@
       setMessage(null, '');
       render();
 
-      const savedCode = localStorage.getItem('adaptia_codigo_ficha');
-      if (!savedCode) {
-        state.screen = 'sheet-code';
-        render();
-        return;
-      }
-
       try {
-        const character = await fetchCharacterByCode(savedCode);
-        if (!character) {
-          localStorage.removeItem('adaptia_codigo_ficha');
-          localStorage.removeItem('adaptia_personagem_id');
-          state.screen = 'sheet-code';
-          setMessage('error', 'Ficha salva no aparelho não foi encontrada. Digite o código da ficha novamente.');
-        } else {
-          state.personagem = character;
-          localStorage.setItem('adaptia_personagem_id', character.id);
-          localStorage.setItem('adaptia_codigo_ficha', character.codigo_ficha);
+        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+        if (sessionError) throw sessionError;
+        state.user = session?.user || null;
+
+        if (!state.user) {
+          state.screen = 'auth-required';
+          setMessage('error', 'Você precisa entrar na sua conta Adaptia pelo Hub antes de jogar.');
+          render();
+          return;
+        }
+
+        await fetchCharactersForUser();
+        const savedId = localStorage.getItem('adaptia_personagem_id');
+        const savedCharacter = state.characters.find(character => character.id === savedId);
+
+        if (savedCharacter) {
+          state.personagem = savedCharacter;
+          localStorage.setItem('adaptia_codigo_ficha', savedCharacter.codigo_ficha || '');
           state.screen = 'session-code';
+        } else {
+          state.screen = 'sheet-code';
         }
       } catch (error) {
-        state.screen = 'sheet-code';
-        setMessage('error', `Erro ao carregar sua ficha: ${error.message || 'falha de conexão'}.`);
+        state.screen = 'auth-required';
+        setMessage('error', `Erro ao verificar login: ${error.message || 'falha de conexão'}.`);
       }
       render();
     }
@@ -820,6 +829,37 @@
         .maybeSingle();
       if (error) throw error;
       return data;
+    }
+
+    async function fetchCharactersForUser() {
+      if (!state.user?.id) {
+        state.characters = [];
+        return [];
+      }
+      const { data, error } = await supabaseClient
+        .from('personagens')
+        .select('*')
+        .eq('owner_id', state.user.id)
+        .order('nivel', { ascending: false })
+        .order('xp_atual', { ascending: false });
+      if (error) throw error;
+      state.characters = data || [];
+      return state.characters;
+    }
+
+    function chooseCharacter(characterId) {
+      const character = state.characters.find(item => item.id === characterId);
+      if (!character) {
+        setMessage('error', 'Personagem não encontrado nesta conta.');
+        render();
+        return;
+      }
+      state.personagem = character;
+      localStorage.setItem('adaptia_personagem_id', character.id);
+      localStorage.setItem('adaptia_codigo_ficha', character.codigo_ficha || '');
+      state.screen = 'session-code';
+      setMessage('ok', `Personagem selecionado: ${character.nome}.`);
+      render();
     }
 
     async function refreshCharacter() {
@@ -848,16 +888,23 @@
 
     async function confirmSheetCode() {
       if (state.busy) return;
+      if (!state.user?.id) {
+        state.screen = 'auth-required';
+        setMessage('error', 'Entre pelo Hub antes de importar uma ficha.');
+        render();
+        return;
+      }
+
       const input = document.getElementById('sheetCodeInput');
       const code = String(input?.value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-      if (!code) {
-        setMessage('error', 'Digite o código da sua ficha para continuar.');
+      if (code.length !== 8) {
+        setMessage('error', 'Digite o código da ficha com 8 caracteres.');
         render();
         return;
       }
 
       state.busy = true;
-      setMessage('info', 'Buscando sua ficha em Adaptia...');
+      setMessage('info', 'Buscando ficha antiga em Adaptia...');
       render();
 
       try {
@@ -868,13 +915,23 @@
           render();
           return;
         }
-        state.personagem = character;
-        localStorage.setItem('adaptia_personagem_id', character.id);
-        localStorage.setItem('adaptia_codigo_ficha', character.codigo_ficha);
-        state.screen = 'session-code';
-        setMessage('ok', `Ficha carregada: ${character.nome}.`);
+        if (character.owner_id && character.owner_id !== state.user.id) {
+          state.busy = false;
+          setMessage('error', 'Essa ficha já está vinculada a outro usuário.');
+          render();
+          return;
+        }
+        if (!character.owner_id) {
+          const { error: updateError } = await supabaseClient
+            .from('personagens')
+            .update({ owner_id: state.user.id })
+            .eq('id', character.id);
+          if (updateError) throw updateError;
+        }
+        await fetchCharactersForUser();
+        chooseCharacter(character.id);
       } catch (error) {
-        setMessage('error', `Erro ao buscar ficha: ${error.message || 'falha de conexão'}.`);
+        setMessage('error', `Erro ao importar ficha: ${error.message || 'falha de conexão'}.`);
       }
 
       state.busy = false;
@@ -1265,21 +1322,58 @@
       `;
     }
 
+    function renderAuthRequiredScreen() {
+      return `
+        <section class="panel center">
+          <div class="waiting-orb" aria-hidden="true"></div>
+          <h2>🔐 Login necessário</h2>
+          <p class="muted">Entre na sua conta Adaptia pelo Hub para escolher seus personagens e entrar na sessão.</p>
+          <a class="btn btn-primary" href="../">Ir para o Hub</a>
+          ${renderMessage()}
+        </section>
+      `;
+    }
+
     function renderSheetCodeScreen() {
+      const charactersMarkup = state.characters.length
+        ? `
+          <div class="grid" style="margin-top:14px;">
+            ${state.characters.map(character => `
+              <button class="player-card" type="button" data-action="choose-character" data-character-id="${escapeHTML(character.id)}">
+                <div class="player-top">
+                  <div>
+                    <h3 class="player-name">${escapeHTML(character.nome || 'Personagem sem nome')}</h3>
+                    <div class="player-meta">${escapeHTML(character.linhagem || 'Sem linhagem')} • ${escapeHTML(character.classe || 'Sem classe')}</div>
+                  </div>
+                  <span class="tag info">Nv. ${Number(character.nivel || 1)}</span>
+                </div>
+                <div class="character-card" style="margin-top:10px;">
+                  <div class="emblem-wrap">${renderEmblem(character.aparencia, character.linhagem, 58)}</div>
+                  <div><strong>PV ${Number(character.pv_atual || 0)}/${Number(character.pv_max || 0)}</strong><span>Código ${escapeHTML(character.codigo_ficha || '---')}</span></div>
+                </div>
+              </button>
+            `).join('')}
+          </div>
+        `
+        : `
+          <div class="hero-note" role="note">
+            <strong>Nenhum personagem nesta conta ainda.</strong>
+            <span>Crie um personagem novo ou importe uma ficha antiga pelo código.</span>
+          </div>
+          <a class="btn btn-primary" href="../criador/" style="margin-top:12px;">Criar Personagem</a>
+        `;
+
       return `
         <section class="panel">
           <div class="panel-header">
-            <h2>🪪 Entrar com ficha</h2>
-            <p class="muted">Digite o código de 8 caracteres gerado no Criador de Personagem.</p>
+            <h2>🎭 Escolha seu personagem</h2>
+            <p class="muted">Aparecem aqui apenas os heróis vinculados à sua conta.</p>
           </div>
-          <div class="hero-note" role="note">
-            <strong>Sem login, sem senha.</strong>
-            <span>A identificação é feita só pelo código da ficha. Guarde esse código como se fosse uma relíquia de almoço.</span>
-          </div>
-          <div class="form-grid" style="margin-top:14px;">
-            <label for="sheetCodeInput">Código da sua ficha</label>
+          ${charactersMarkup}
+          <div class="form-grid" style="margin-top:18px;">
+            <label for="sheetCodeInput">Importar ficha antiga pelo código</label>
             <input id="sheetCodeInput" type="text" maxlength="8" inputmode="text" autocomplete="off" placeholder="Ex: A1B2C3D4" />
-            <button class="btn btn-primary" type="button" data-action="confirm-sheet" ${state.busy ? 'disabled' : ''}>${state.busy ? 'Confirmando...' : 'Confirmar'}</button>
+            <button class="btn btn-secondary" type="button" data-action="confirm-sheet" ${state.busy ? 'disabled' : ''}>${state.busy ? 'Importando...' : 'Importar e usar ficha'}</button>
           </div>
           ${renderMessage()}
         </section>
@@ -1294,7 +1388,7 @@
             <p class="muted">Digite o código de 4 letras que aparece na Tela do Mestre.</p>
           </div>
           ${characterMiniCard(false)}
-          <button class="mini-link" type="button" data-action="reset-sheet">Não é você? Trocar ficha</button>
+          <button class="mini-link" type="button" data-action="reset-sheet">Trocar personagem</button>
           <div class="form-grid" style="margin-top:12px;">
             <label for="sessionCodeInput">Código da sessão</label>
             <input id="sessionCodeInput" type="text" maxlength="4" inputmode="text" autocomplete="off" placeholder="Ex: BRFG" />
@@ -1489,6 +1583,7 @@
     function render() {
       const views = {
         'loading': renderLoading,
+        'auth-required': renderAuthRequiredScreen,
         'sheet-code': renderSheetCodeScreen,
         'session-code': renderSessionCodeScreen,
         'waiting': renderWaitingScreen,
@@ -1504,6 +1599,7 @@
       if (!button) return;
       const action = button.dataset.action;
       if (action === 'confirm-sheet') confirmSheetCode();
+      if (action === 'choose-character') chooseCharacter(button.dataset.characterId);
       if (action === 'enter-session') enterSession();
       if (action === 'reset-sheet') resetSheet();
       if (action === 'leave-session') leaveSession();

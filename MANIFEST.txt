@@ -1,10 +1,11 @@
-.nojekyll
-MANIFEST.txt
-README.md
-arquivo-antigo/criador-v1.html
-controle/index.html
-criador/index.html
-index.html
-regras/index.html
-supabase-patch.sql
-tela/index.html
+Adaptia RPG - Site pronto com Login v2
+
+Arquivos principais:
+- index.html                       Hub com login/cadastro, Meus Herois e importacao de ficha antiga
+- criador/index.html               Criador vinculado ao usuario logado e salvando owner_id
+- controle/index.html              Controle com escolha dos personagens do usuario logado
+- tela/index.html                  Tela do Mestre
+- regras/index.html                Livro de Regras
+- arquivo-antigo/criador-v1.html   Backup antigo
+- supabase-patch.sql               Patch completo do banco
+- .nojekyll                        Evita processamento Jekyll no GitHub Pages
