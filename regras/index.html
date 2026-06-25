@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adaptia RPG — Livro de Regras v1</title>
+  <meta name="description" content="Livro de Regras v1 do RPG Adaptia, um jogo interno de fantasia e rotina de agência para diversão no intervalo de almoço da Adapt Estratégias Digitais." />
+  <meta name="author" content="Adapt Estratégias Digitais" />
+  <meta property="og:title" content="Adaptia RPG — Livro de Regras v1" />
+  <meta property="og:description" content="Regras, criação de personagem, linhagens, classes, sinergias, combate, XP, habilidades e itens do RPG Adaptia." />
+  <meta property="og:type" content="website" />
+  <style>
+    :root {
+      --bg: #120e19;
+      --bg-2: #1d1628;
+      --paper: #fff7df;
+      --paper-2: #f2e2b8;
+      --ink: #2b2134;
+      --muted: #6f6276;
+      --gold: #f2c14e;
+      --gold-2: #c58a2c;
+      --amber: #ffdf8a;
+      --violet: #6d4cc2;
+      --violet-2: #a786ff;
+      --green: #5f9f7b;
+      --red: #b84a4a;
+      --blue: #376d9c;
+      --line: rgba(43, 33, 52, 0.18);
+      --glass: rgba(255, 247, 223, 0.08);
+      --shadow: 0 20px 70px rgba(0, 0, 0, 0.32);
+      --radius-lg: 26px;
+      --radius-md: 18px;
+      --radius-sm: 12px;
+      --max: 1180px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--paper);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(167, 134, 255, 0.22), transparent 32rem),
+        radial-gradient(circle at 82% 12%, rgba(242, 193, 78, 0.16), transparent 26rem),
+        linear-gradient(135deg, #0f0b16 0%, #1b1426 54%, #0d121b 100%);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 247, 223, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 247, 223, 0.035) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, black, transparent 88%);
+      z-index: -2;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 20%, transparent 0 18rem, rgba(0,0,0,0.1) 32rem),
+        linear-gradient(90deg, rgba(255,255,255,0.02), transparent 25%, rgba(255,255,255,0.015));
+      z-index: -1;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -100px;
+      left: 16px;
+      z-index: 2000;
+      background: var(--gold);
+      color: #22170a;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 800;
+    }
+
+    .skip-link:focus {
+      top: 16px;
+      outline: 3px solid var(--paper);
+    }
+
+    .page {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(16px);
+      background: rgba(18, 14, 25, 0.82);
+      border-bottom: 1px solid rgba(255, 247, 223, 0.12);
+    }
+
+    .topbar-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 12px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--gold), #8f5dff);
+      box-shadow: 0 10px 30px rgba(242, 193, 78, 0.18);
+      color: #201529;
+      font-size: 22px;
+    }
+
+    .brand-title {
+      display: grid;
+      line-height: 1.1;
+    }
+
+    .brand-title strong {
+      font-family: Georgia, "Times New Roman", serif;
+      letter-spacing: 0.02em;
+      color: var(--amber);
+      white-space: nowrap;
+    }
+
+    .brand-title span {
+      color: rgba(255, 247, 223, 0.72);
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav a,
+    .nav button,
+    .action-btn {
+      border: 1px solid rgba(255, 247, 223, 0.14);
+      color: rgba(255, 247, 223, 0.9);
+      background: rgba(255, 247, 223, 0.07);
+      border-radius: 999px;
+      padding: 9px 12px;
+      cursor: pointer;
+      transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .nav a:hover,
+    .nav button:hover,
+    .action-btn:hover {
+      transform: translateY(-1px);
+      background: rgba(242, 193, 78, 0.15);
+      border-color: rgba(242, 193, 78, 0.45);
+    }
+
+    .menu-toggle {
+      display: none;
+    }
+
+    .hero {
+      margin-top: 28px;
+      padding: clamp(26px, 6vw, 64px);
+      border: 1px solid rgba(255, 247, 223, 0.14);
+      border-radius: var(--radius-lg);
+      background:
+        linear-gradient(135deg, rgba(255, 247, 223, 0.13), rgba(255, 247, 223, 0.05)),
+        radial-gradient(circle at 80% 22%, rgba(242, 193, 78, 0.22), transparent 24rem),
+        radial-gradient(circle at 18% 78%, rgba(109, 76, 194, 0.28), transparent 24rem);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "⚔️   ☕   📊   🧙   🗂️   🐉";
+      position: absolute;
+      right: -45px;
+      top: 28px;
+      transform: rotate(12deg);
+      color: rgba(255, 247, 223, 0.08);
+      font-size: clamp(3.4rem, 10vw, 8rem);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #241606;
+      background: linear-gradient(135deg, var(--gold), var(--amber));
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      box-shadow: 0 12px 34px rgba(242, 193, 78, 0.2);
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.08;
+    }
+
+    h1 {
+      max-width: 860px;
+      margin-top: 18px;
+      font-size: clamp(2.5rem, 8vw, 6rem);
+      color: var(--paper);
+      text-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    h2 {
+      color: #3a2a12;
+      font-size: clamp(1.65rem, 3.8vw, 2.7rem);
+    }
+
+    h3 {
+      color: #432f14;
+      font-size: clamp(1.2rem, 2vw, 1.55rem);
+      margin-bottom: 12px;
+    }
+
+    .hero p {
+      max-width: 820px;
+      margin: 18px 0 0;
+      color: rgba(255, 247, 223, 0.86);
+      font-size: clamp(1.02rem, 2vw, 1.2rem);
+    }
+
+    .hero-actions {
+      margin-top: 28px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-weight: 900;
+      border: 1px solid transparent;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, var(--gold), var(--amber));
+      color: #241606;
+      box-shadow: 0 14px 36px rgba(242, 193, 78, 0.22);
+    }
+
+    .secondary-btn {
+      color: var(--paper);
+      background: rgba(255, 247, 223, 0.08);
+      border-color: rgba(255, 247, 223, 0.16);
+    }
+
+    .primary-btn:hover,
+    .secondary-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .notice {
+      margin-top: 24px;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(242, 193, 78, 0.28);
+      display: grid;
+      gap: 4px;
+      max-width: 920px;
+    }
+
+    .notice strong {
+      color: var(--amber);
+    }
+
+    .notice span {
+      color: rgba(255, 247, 223, 0.83);
+    }
+
+    .meta-grid {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .meta-card {
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 247, 223, 0.08);
+      border: 1px solid rgba(255, 247, 223, 0.12);
+    }
+
+    .meta-card b {
+      display: block;
+      color: var(--amber);
+      font-size: 1.1rem;
+    }
+
+    .meta-card span {
+      color: rgba(255, 247, 223, 0.76);
+      font-size: 0.92rem;
+    }
+
+    .toc-card,
+    .tool-card,
+    .section {
+      background:
+        linear-gradient(180deg, rgba(255, 247, 223, 0.96), rgba(242, 226, 184, 0.98));
+      color: var(--ink);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255, 247, 223, 0.55);
+      box-shadow: var(--shadow);
+    }
+
+    .toc-card {
+      margin-top: 22px;
+      padding: clamp(20px, 4vw, 34px);
+    }
+
+    .toc-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .toc-header p {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      counter-reset: toc;
+    }
+
+    .toc-grid a {
+      counter-increment: toc;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 54px;
+      padding: 12px 13px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.36);
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+      font-weight: 800;
+    }
+
+    .toc-grid a::before {
+      content: counter(toc);
+      flex: 0 0 auto;
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #33243f;
+      color: var(--amber);
+      font-size: 0.86rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .toc-grid a:hover {
+      transform: translateY(-2px);
+      border-color: rgba(197, 138, 44, 0.5);
+      box-shadow: 0 12px 24px rgba(43, 33, 52, 0.08);
+    }
+
+    .tool-card {
+      margin-top: 22px;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .search-wrap {
+      flex: 1;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      min-width: 240px;
+      background: rgba(255,255,255,0.45);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+      min-width: 0;
+    }
+
+    .search-wrap input::placeholder {
+      color: #807184;
+    }
+
+    .content {
+      margin-top: 22px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .section {
+      padding: clamp(20px, 4vw, 34px);
+      scroll-margin-top: 92px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .section::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 8px;
+      background: linear-gradient(90deg, var(--gold), var(--violet-2), var(--green));
+      opacity: 0.75;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .section-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      margin-bottom: 10px;
+      border-radius: 999px;
+      background: rgba(109, 76, 194, 0.12);
+      color: #4b328d;
+      font-size: 0.86rem;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .section p {
+      margin: 0 0 14px;
+      color: #4d4154;
+    }
+
+    .section ul,
+    .section ol {
+      margin: 0;
+      padding-left: 1.2rem;
+      color: #4d4154;
+    }
+
+    .section li + li {
+      margin-top: 8px;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 0 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      color: #3b2a13;
+      background: rgba(242, 193, 78, 0.22);
+      border: 1px solid rgba(197, 138, 44, 0.22);
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 18px;
+      border: 1px solid rgba(43, 33, 52, 0.14);
+      background: rgba(255,255,255,0.42);
+      margin: 14px 0 18px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 720px;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid rgba(43, 33, 52, 0.12);
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      color: #fff6d8;
+      background: #34223f;
+      font-weight: 900;
+      letter-spacing: 0.01em;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(255,255,255,0.32);
+    }
+
+    tbody tr:hover {
+      background: rgba(242, 193, 78, 0.16);
+    }
+
+    .compact-table table {
+      min-width: 560px;
+    }
+
+    .attribute-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .attribute-card {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.42);
+      display: grid;
+      gap: 6px;
+    }
+
+    .attribute-card strong {
+      color: #3a2a12;
+      font-size: 1.05rem;
+    }
+
+    .attribute-card span {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    .callout {
+      border-radius: 18px;
+      padding: 16px;
+      margin: 16px 0;
+      border: 1px solid rgba(109, 76, 194, 0.2);
+      background: rgba(109, 76, 194, 0.09);
+      color: #46364e;
+    }
+
+    .callout strong {
+      color: #4b328d;
+    }
+
+    .warning {
+      border-color: rgba(184, 74, 74, 0.24);
+      background: rgba(184, 74, 74, 0.08);
+    }
+
+    .warning strong {
+      color: #823636;
+    }
+
+    .formula {
+      margin: 14px 0;
+      padding: 15px 16px;
+      border-radius: 16px;
+      background: #2f2438;
+      color: #fff7df;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      overflow-x: auto;
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+
+    .cards-2,
+    .cards-3 {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .cards-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .cards-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .mini-card {
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.42);
+      padding: 16px;
+    }
+
+    .mini-card b {
+      display: block;
+      color: #3a2a12;
+      margin-bottom: 6px;
+      font-size: 1.05rem;
+    }
+
+    .mini-card span {
+      color: #4d4154;
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(43,33,52,0.12);
+      background: rgba(255,255,255,0.44);
+      color: #4d4154;
+      font-weight: 800;
+      font-size: 0.88rem;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.42);
+      overflow: hidden;
+    }
+
+    details + details {
+      margin-top: 10px;
+    }
+
+    summary {
+      padding: 14px 16px;
+      cursor: pointer;
+      font-weight: 900;
+      color: #3a2a12;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::after {
+      content: "+";
+      width: 26px;
+      height: 26px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: #34223f;
+      color: var(--amber);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+    }
+
+    details[open] summary::after {
+      content: "−";
+    }
+
+    .details-body {
+      padding: 0 16px 16px;
+      color: #4d4154;
+    }
+
+    .footer {
+      margin: 26px 0 16px;
+      padding: 22px;
+      color: rgba(255, 247, 223, 0.76);
+      text-align: center;
+    }
+
+    .back-top {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: 46px;
+      height: 46px;
+      border: 1px solid rgba(255, 247, 223, 0.18);
+      border-radius: 50%;
+      background: rgba(18, 14, 25, 0.86);
+      color: var(--amber);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: 0 14px 36px rgba(0,0,0,0.26);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 160ms ease, transform 160ms ease;
+      z-index: 1000;
+    }
+
+    .back-top.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .hidden-by-search {
+      display: none !important;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--violet-2);
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 900px) {
+      .menu-toggle {
+        display: inline-flex;
+      }
+
+      .nav {
+        position: absolute;
+        top: 64px;
+        left: 14px;
+        right: 14px;
+        display: none;
+        padding: 12px;
+        border-radius: 20px;
+        background: rgba(18, 14, 25, 0.96);
+        border: 1px solid rgba(255, 247, 223, 0.14);
+        box-shadow: var(--shadow);
+        justify-content: flex-start;
+      }
+
+      .nav.is-open {
+        display: flex;
+      }
+
+      .toc-grid,
+      .meta-grid,
+      .attribute-grid,
+      .cards-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .tool-card {
+        align-items: stretch;
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: 14px;
+      }
+
+      .topbar-inner {
+        padding: 10px 14px;
+      }
+
+      .brand-title span {
+        display: none;
+      }
+
+      .hero {
+        margin-top: 16px;
+        border-radius: 22px;
+      }
+
+      .hero-actions,
+      .tool-card,
+      .section-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .primary-btn,
+      .secondary-btn,
+      .action-btn {
+        justify-content: center;
+      }
+
+      .toc-grid,
+      .meta-grid,
+      .attribute-grid,
+      .cards-2,
+      .cards-3 {
+        grid-template-columns: 1fr;
+      }
+
+      table {
+        min-width: 680px;
+      }
+
+      .compact-table table {
+        min-width: 520px;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff7df;
+        color: #2b2134;
+      }
+
+      body::before,
+      body::after,
+      .topbar,
+      .tool-card,
+      .back-top,
+      .hero-actions {
+        display: none !important;
+      }
+
+      .page {
+        max-width: none;
+        padding: 0;
+      }
+
+      .hero,
+      .toc-card,
+      .section {
+        box-shadow: none;
+        border: 1px solid #d4bf88;
+        break-inside: avoid;
+      }
+
+      .hero {
+        color: #2b2134;
+        background: #fff7df;
+      }
+
+      .hero p,
+      .notice span {
+        color: #4d4154;
+      }
+
+      .section {
+        margin-top: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="topbar" aria-label="Barra superior">
+    <div class="topbar-inner">
+      <a class="brand" href="#topo" aria-label="Voltar ao topo">
+        <span class="brand-mark" aria-hidden="true">⚜️</span>
+        <span class="brand-title">
+          <strong>Adaptia RPG</strong>
+          <span>Livro de Regras v1</span>
+        </span>
+      </a>
+
+      <button class="menu-toggle action-btn" type="button" aria-expanded="false" aria-controls="nav-principal">Menu</button>
+
+      <nav class="nav" id="nav-principal" aria-label="Navegação principal">
+        <a href="#sumario">Sumário</a>
+        <a href="#criacao-personagem">Criar ficha</a>
+        <a href="#resolucao-testes">Testes</a>
+        <a href="#chefao">Chefão</a>
+        <a href="#xp-nivel">XP</a>
+        <button type="button" id="printBtn">Imprimir</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page" id="topo">
+    <section class="hero" aria-labelledby="titulo-principal">
+      <span class="eyebrow">📜 Documento v1 • Campanha de almoço</span>
+      <h1 id="titulo-principal">Adaptia RPG — Livro de Regras</h1>
+      <p>
+        Um RPG estilo D&amp;D em capítulos curtos, com fantasia, piada interna de agência e aquele toque de escritório onde até o Dragão do CPA Alto precisa respeitar o horário de almoço.
+      </p>
+
+      <div class="hero-actions">
+        <a class="primary-btn" href="#sumario">Abrir sumário</a>
+        <a class="secondary-btn" href="#criacao-personagem">Começar personagem</a>
+      </div>
+
+      <div class="notice" role="note" aria-label="Aviso importante">
+        <strong>Importante: isso é só diversão.</strong>
+        <span>Este jogo não tem nenhuma relação com avaliação de performance real de ninguém. É uma experiência interna de engajamento, humor e aventura em Adaptia.</span>
+      </div>
+
+      <div class="meta-grid" aria-label="Resumo rápido do jogo">
+        <div class="meta-card">
+          <b>20–25min</b>
+          <span>Capítulos rápidos para caber no intervalo.</span>
+        </div>
+        <div class="meta-card">
+          <b>Personagem fixo</b>
+          <span>Evolui sessão a sessão.</span>
+        </div>
+        <div class="meta-card">
+          <b>8 atributos</b>
+          <span>Todos começam em 3.</span>
+        </div>
+        <div class="meta-card">
+          <b>Adaptia</b>
+          <span>Fantasia paralela da rotina de agência.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="toc-card" id="sumario" aria-labelledby="titulo-sumario">
+      <div class="toc-header">
+        <div>
+          <span class="section-kicker">Navegação</span>
+          <h2 id="titulo-sumario">Sumário</h2>
+          <p>Use os atalhos abaixo para consultar regras, tabelas e habilidades sem precisar enfrentar a Bruma do Scroll Infinito.</p>
+        </div>
+      </div>
+      <div class="toc-grid">
+        <a href="#visao-geral">Visão geral</a>
+        <a href="#atributos">Atributos</a>
+        <a href="#linhagens">Linhagens</a>
+        <a href="#classes">Classes</a>
+        <a href="#sinergias">Sinergias</a>
+        <a href="#criacao-personagem">Criação de personagem</a>
+        <a href="#resolucao-testes">Resolução de testes</a>
+        <a href="#chefao">Combate de chefão</a>
+        <a href="#vida-pv">Vida e PV</a>
+        <a href="#xp-nivel">XP e nível</a>
+        <a href="#habilidades-classe-tier1">Habilidades de Classe — Tier 1</a>
+        <a href="#habilidades-linhagem-tier1">Habilidades de Linhagem — Tier 1</a>
+        <a href="#habilidades-iniciais">Habilidade inicial de Classe</a>
+        <a href="#itens">Itens</a>
+        <a href="#observacao-final">Observação final</a>
+      </div>
+    </section>
+
+    <section class="tool-card" aria-label="Ferramentas do documento">
+      <label class="search-wrap" for="searchInput">
+        <span aria-hidden="true">🔎</span>
+        <input id="searchInput" type="search" placeholder="Filtrar tabelas por classe, linhagem, atributo, habilidade..." autocomplete="off" />
+      </label>
+      <button class="action-btn" type="button" id="clearSearch">Limpar filtro</button>
+    </section>
+
+    <div class="content" id="conteudo">
+      <section class="section" id="visao-geral" data-section>
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">🌎 Lore</span>
+            <h2>Visão geral de Adaptia</h2>
+          </div>
+        </div>
+        <p>
+          Existe um mundo de fantasia paralelo chamado <strong>Adaptia</strong>. Nele, as ameaças e monstros nascem das piadas internas da rotina de agência, como o <strong>Dragão do CPA Alto</strong>, a <strong>Bruma do Tensionamento</strong>, o <strong>Lich do Churn</strong> e a <strong>Hidra do Escopo Que Não Para de Crescer</strong>.
+        </p>
+        <p>
+          A proposta é jogar em formato digital, rápido e prático, com personagens fixos que evoluem sessão a sessão em uma campanha contínua de capítulos curtos.
+        </p>
+        <div class="callout warning">
+          <strong>Sem relação com avaliação real:</strong> o jogo é exclusivamente uma brincadeira interna de diversão e engajamento. Nenhuma regra, personagem, vitória, derrota, classe ou atributo representa avaliação de performance na Adapt.
+        </div>
+      </section>
+
+      <section class="section" id="atributos" data-section>
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">🎲 Base da ficha</span>
+            <h2>1. Atributos</h2>
+          </div>
+        </div>
+        <p>São 8 atributos no total. Todos começam em <strong>3</strong> para qualquer personagem.</p>
+        <div class="attribute-grid">
+          <div class="attribute-card"><strong>Análise</strong><span>Valor inicial: 3</span></div>
+          <div class="attribute-card"><strong>Precisão</strong><span>Valor inicial: 3</span></div>
+          <div class="attribute-card"><strong>Lábia</strong><span>Valor inicial: 3</span></div>
+          <div class="attribute-card"><strong>Criatividade</strong><span>Valor inicial: 3</span></div>
+          <div class="attribute-card"><strong>Resiliência</strong><span>Valor inicial: 3</span></div>
+          <div class="attribute-card"><strong>Instinto</strong><span>Valor inicial: 3</span></div>
+          <div class="attribute-card"><strong>Improviso</strong><span>Valor inicial: 3</span></div>
+          <div class="attribute-card"><strong>Empatia</strong><span>Valor inicial: 3</span></div>
+        </div>
+      </section>
+
+      <section class="section" id="linhagens" data-section>
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">🏢 Setor de origem</span>
+            <h2>2. Linhagens</h2>
+          </div>
+        </div>
+        <p>Linhagem representa o setor de origem na Adapt. Todas somam <strong>+8</strong> no total.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Linhagem</th>
+                <th>Bônus de atributos</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Tráfego Pago</td><td>Improviso +3, Análise +2, Precisão +2, Lábia +1</td><td>+8</td></tr>
+              <tr><td>Copywriting</td><td>Criatividade +3, Empatia +2, Lábia +2, Análise +1</td><td>+8</td></tr>
+              <tr><td>Design</td><td>Criatividade +3, Precisão +2, Instinto +2, Empatia +1</td><td>+8</td></tr>
+              <tr><td>CS / Atendimento</td><td>Empatia +3, Resiliência +2, Lábia +2, Instinto +1</td><td>+8</td></tr>
+              <tr><td>Comercial</td><td>Lábia +3, Instinto +2, Resiliência +2, Empatia +1</td><td>+8</td></tr>
+              <tr><td>RH</td><td>Empatia +3, Resiliência +2, Lábia +2, Análise +1</td><td>+8</td></tr>
+              <tr><td>Audiovisual</td><td>Criatividade +3, Precisão +2, Improviso +2, Instinto +1</td><td>+8</td></tr>
+              <tr><td>Sites</td><td>Análise +3, Precisão +2, Resiliência +2, Instinto +1</td><td>+8</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="classes" data-section>
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">⚔️ Arquétipo</span>
+            <h2>3. Classes</h2>
+          </div>
+        </div>
+        <p>São 12 classes. A escolha é livre e define bônus de atributo, bônus de PV e item inicial.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Classe</th>
+                <th>Bônus de atributo</th>
+                <th>Bônus de PV</th>
+                <th>Item inicial</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Guerreiro</td><td>Resiliência +3, Precisão +2</td><td>PV +8</td><td>Espada Longa</td></tr>
+              <tr><td>Bárbaro</td><td>Resiliência +3, Improviso +2</td><td>PV +8</td><td>Machado de Batalha</td></tr>
+              <tr><td>Paladino</td><td>Precisão +3, Análise +2</td><td>PV +6</td><td>Escudo Sagrado</td></tr>
+              <tr><td>Monge</td><td>Instinto +3, Resiliência +2</td><td>PV +6</td><td>Manoplas de Combate</td></tr>
+              <tr><td>Mago</td><td>Análise +3, Precisão +2</td><td>PV +0 (conjurador)</td><td>Cajado Arcano</td></tr>
+              <tr><td>Bruxo</td><td>Improviso +3, Análise +2</td><td>PV +0 (conjurador)</td><td>Adaga de Pacto</td></tr>
+              <tr><td>Arqueiro</td><td>Precisão +3, Instinto +2</td><td>PV +2</td><td>Arco Longo</td></tr>
+              <tr><td>Bardo</td><td>Lábia +3, Criatividade +2</td><td>PV +0 (conjurador)</td><td>Alaúde</td></tr>
+              <tr><td>Feiticeiro</td><td>Instinto +3, Improviso +2</td><td>PV +0 (conjurador)</td><td>Anel de Foco</td></tr>
+              <tr><td>Ladino</td><td>Improviso +3, Lábia +2</td><td>PV +2</td><td>Adagas Duplas</td></tr>
+              <tr><td>Sacerdote</td><td>Lábia +3, Resiliência +2</td><td>PV +4 (conjurador)</td><td>Cajado Sagrado</td></tr>
+              <tr><td>Druida</td><td>Criatividade +3, Instinto +2</td><td>PV +4 (conjurador)</td><td>Cajado de Carvalho</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="sinergias" data-section>
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">✨ Combo especial</span>
+            <h2>4. Sinergias</h2>
+          </div>
+        </div>
+        <p>Linhagem + Classe específica gera bônus extra de <strong>+1 em um atributo</strong> e uma habilidade exclusiva. Qualquer outra combinação soma normal, sem bônus.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Combinação</th>
+                <th>Bônus extra</th>
+                <th>Habilidade exclusiva</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Tráfego Pago + Arqueiro</td><td>+1 Precisão</td><td>"Mira Calibrada" — refaz 1 rolagem de execução por sessão</td></tr>
+              <tr><td>Copywriting + Bardo</td><td>+1 Lábia</td><td>"Discurso Afiado" — vence empate de persuasão automaticamente</td></tr>
+              <tr><td>Design + Druida</td><td>+1 Criatividade</td><td>"Forma Perfeita" — refaz 1 resultado visual por sessão</td></tr>
+              <tr><td>CS/Atendimento + Sacerdote</td><td>+1 Resiliência</td><td>"Voz que Acalma" — cura 1 efeito ruim de um colega por sessão</td></tr>
+              <tr><td>Comercial + Ladino</td><td>+1 Lábia</td><td>"Fechador Nato" — vantagem em qualquer negociação do jogo</td></tr>
+              <tr><td>RH + Monge</td><td>+1 Resiliência</td><td>"Mediador Zen" — ignora 1 efeito de caos do grupo por sessão</td></tr>
+              <tr><td>Audiovisual + Feiticeiro</td><td>+1 Improviso</td><td>"Take Único" — refaz 1 rolagem ruim por sessão</td></tr>
+              <tr><td>Sites + Mago</td><td>+1 Precisão</td><td>"Código Impecável" — ignora 1 "bug"/falha por sessão</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="criacao-personagem" data-section>
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">🧾 Ficha</span>
+            <h2>5. Criação de personagem</h2>
+          </div>
+        </div>
+        <ol>
+          <li>Todos os 8 atributos começam em 3.</li>
+          <li>Escolhe Linhagem → soma o bônus da tabela 2.</li>
+          <li>Escolhe Classe → soma o bônus da tabela 3.</li>
+          <li>Verifica Sinergia (tabela 4) → se bater, soma +1 extra e ganha a habilidade exclusiva.</li>
+          <li>Distribui 10 pontos livres entre os atributos (1 ponto = +1 no atributo).</li>
+          <li>Nenhum atributo pode passar de 20 (teto).</li>
+        </ol>
+        <div class="callout">
+          <strong>Resultado final:</strong> ficha com os 8 atributos definidos.
+        </div>
+      </section>
+
+      <section class="section" id="resolucao-testes" data-section>
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">🎲 Dado na mesa</span>
+            <h2>6. Resolução de testes</h2>
+          </div>
+        </div>
+        <div class="formula">Modificador de qualquer atributo = atributo ÷ 2, arredondado para baixo</div>
+        <div class="formula">Teste = 1d20 + modificador do atributo relevante, comparado contra uma Dificuldade (DD)</div>
+        <div class="table-wrap compact-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Dificuldade</th>
+                <th>DD</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Trivial</td><td>10</td></tr>
+              <tr><td>Fácil</td><td>13</td></tr>
+              <tr><td>Médio</td><td>16</td></tr>
+              <tr><td>Difícil</td><td>20</td></tr>
+              <tr><td>Muito difícil</td><td>24</td></tr>
+              <tr><td>Chefão/Lendário</td><td>28+</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="cards-2">
+          <div class="mini-card">
+            <b>Natural 20</b>
+            <span>Sucesso crítico: efeito dobrado + chance extra de loot.</span>
+          </div>
+          <div class="mini-card">
+            <b>Natural 1</b>
+            <span>Fracasso crítico: consequência cômica + dano dobrado.</span>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>Antes de cada evento/cena:</strong> cada jogador decide entre <strong>ENFRENTAR</strong> ou <strong>IGNORAR</strong>.
+        </div>
+        <div class="cards-2">
+          <div class="mini-card">
+            <b>ENFRENTAR</b>
+            <span>Rola dado, arrisca dano e ganha XP/loot.</span>
+          </div>
+          <div class="mini-card">
+            <b>IGNORAR</b>
+            <span>Sem risco, sem recompensa do evento, só XP base de participação.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="chefao" data-section>
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">🐉 Reunião com vida própria</span>
+            <h2>7. Combate de chefão</h2>
+          </div>
+        </div>
+        <p>Chefão tem PV próprio e uma DD de defesa.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ação no turno</th>
+                <th>Como funciona</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ATACAR</td>
+                <td>1d20 + modificador do atributo principal da Classe vs DD do chefão; sucesso = dano igual ao modificador usado.</td>
+              </tr>
+              <tr>
+                <td>APOIAR</td>
+                <td>Dá Vantagem — rola 2 dados e fica com o maior — para o próximo teste de um colega.</td>
+              </tr>
+              <tr>
+                <td>RECUAR</td>
+                <td>Sai da rodada, sem risco nem recompensa.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">
+          <strong>Contra-ataque do chefão:</strong> o chefão contra-ataca sorteando um jogador, que rola para resistir; se falhar, sofre 2d6 de dano real.
+        </div>
+        <p>Encontros de chefão duram cerca de <strong>3-4 rodadas</strong>, para caber no horário de almoço.</p>
+      </section>
+
+      <section class="section" id="vida-pv" data-section>
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">❤️ Sobreviver ao sprint</span>
+            <h2>8. Vida (PV)</h2>
+          </div>
+        </div>
+        <div class="formula">PV máximo = 10 + (modificador de Resiliência × 2) + bônus de PV da Classe</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Situação</th>
+                <th>Dano / efeito</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Falha em teste de Enfrentar num evento comum</td><td>1d4</td></tr>
+              <tr><td>Falha na resistência ao contra-ataque de chefão</td><td>2d6</td></tr>
+              <tr><td>Resultado natural 1</td><td>Dano dobrado</td></tr>
+              <tr><td>PV chega a 0</td><td>Personagem fica "Fora de Cena" pelo resto daquela sessão</td></tr>
+              <tr><td>Reanimação</td><td>Qualquer colega pode rolar 1d20 + modificador de Empatia vs DD 15; se passar, o personagem volta com metade do PV máximo</td></tr>
+              <tr><td>Início de nova sessão</td><td>PV reseta cheio; não carrega problema de uma sessão para outra</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="xp-nivel" data-section>
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">⭐ Evolução</span>
+            <h2>9. XP e nível</h2>
+          </div>
+        </div>
+        <p>XP por evento é uma faixa de referência, decidida pela situação, não é valor fixo.</p>
+        <div class="table-wrap compact-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Evento</th>
+                <th>XP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Trivial</td><td>3–5</td></tr>
+              <tr><td>Fácil</td><td>5–8</td></tr>
+              <tr><td>Médio</td><td>8–12</td></tr>
+              <tr><td>Difícil</td><td>12–18</td></tr>
+              <tr><td>Chefão</td><td>25–40 (dividido entre os participantes)</td></tr>
+              <tr><td>Crítico (natural 20)</td><td>+5 de bônus</td></tr>
+              <tr><td>Participação base na sessão</td><td>3 (mesmo quem só ignorou tudo)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="formula">XP necessário para subir de nível = nível atual × 20</div>
+        <p>Exemplos: nível 2 precisa de 20 XP acumulado, nível 3 de 40, nível 4 de 60...</p>
+        <div class="cards-3">
+          <div class="mini-card">
+            <b>Cada level up</b>
+            <span>+3 pontos de atributo livres para redistribuir, respeitando o teto de 20.</span>
+          </div>
+          <div class="mini-card">
+            <b>A cada 4 níveis</b>
+            <span>Níveis 4, 8, 12... desbloqueiam uma habilidade nova de Classe.</span>
+          </div>
+          <div class="mini-card">
+            <b>A cada 6 níveis</b>
+            <span>Níveis 6, 12, 18... desbloqueiam uma habilidade nova de Linhagem/Setor.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="habilidades-classe-tier1" data-section>
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">🛡️ Nível 4</span>
+            <h2>10. Habilidades de Classe — Tier 1</h2>
+          </div>
+        </div>
+        <p>Desbloqueada no nível 4. Uso de <strong>1x por sessão</strong> cada.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Classe</th>
+                <th>Habilidade</th>
+                <th>Efeito</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Guerreiro</td><td>"Fôlego de Aço"</td><td>Ignora um dano recebido</td></tr>
+              <tr><td>Bárbaro</td><td>"Furor"</td><td>Dobra o dano de um ataque</td></tr>
+              <tr><td>Paladino</td><td>"Escudo do Processo"</td><td>Recebe um dano no lugar de um colega</td></tr>
+              <tr><td>Monge</td><td>"Respiração Zen"</td><td>Recupera PV igual ao modificador de Instinto</td></tr>
+              <tr><td>Mago</td><td>"Cálculo Preciso"</td><td>Troca o resultado do d20 por um 15 fixo</td></tr>
+              <tr><td>Bruxo</td><td>"Pacto Sombrio"</td><td>Ganha Vantagem agora, mas Desvantagem no próximo teste</td></tr>
+              <tr><td>Arqueiro</td><td>"Tiro Certeiro"</td><td>Acerto automático contra DD ≤16</td></tr>
+              <tr><td>Bardo</td><td>"Plateia a Favor"</td><td>Dá Vantagem para o grupo num teste social</td></tr>
+              <tr><td>Feiticeiro</td><td>"Explosão Instável"</td><td>Rola 2d20 e soma os dois; risco: se sair um 1, sofre dano extra</td></tr>
+              <tr><td>Ladino</td><td>"Golpe Furtivo"</td><td>Dobra o dano num ataque surpresa</td></tr>
+              <tr><td>Sacerdote</td><td>"Bênção Rápida"</td><td>Cura PV igual ao modificador de Empatia em um colega</td></tr>
+              <tr><td>Druida</td><td>"Forma Adaptada"</td><td>Troca o atributo usado num teste por outro</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="habilidades-linhagem-tier1" data-section>
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">🏢 Nível 6</span>
+            <h2>11. Habilidades de Linhagem — Tier 1</h2>
+          </div>
+        </div>
+        <p>Desbloqueada no nível 6. Uso de <strong>1x por sessão</strong> cada.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Linhagem</th>
+                <th>Habilidade</th>
+                <th>Efeito</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Tráfego Pago</td><td>"Otimização em Tempo Real"</td><td>Refaz um teste de Improviso</td></tr>
+              <tr><td>Copywriting</td><td>"Storytelling"</td><td>Transforma um fracasso social em sucesso parcial</td></tr>
+              <tr><td>Design</td><td>"Pixel Perfeito"</td><td>Garante um crítico num teste de Criatividade</td></tr>
+              <tr><td>CS/Atendimento</td><td>"Jogo de Cintura"</td><td>Reanima um colega "Fora de Cena" sem precisar de teste; volta com 1/4 do PV</td></tr>
+              <tr><td>Comercial</td><td>"Fechamento"</td><td>Vence automaticamente um teste de negociação</td></tr>
+              <tr><td>RH</td><td>"Mediação"</td><td>Anula o contra-ataque de um chefão contra qualquer jogador</td></tr>
+              <tr><td>Audiovisual</td><td>"Corte Perfeito"</td><td>Ignora o fracasso crítico de um colega</td></tr>
+              <tr><td>Sites</td><td>"Debug Express"</td><td>Refaz um teste de Análise ou Precisão</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="habilidades-iniciais" data-section>
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">🔮 Nível 1</span>
+            <h2>12. Habilidade inicial de Classe</h2>
+          </div>
+        </div>
+        <div class="cards-2">
+          <div class="mini-card">
+            <b>Classes conjuradoras usam MANA</b>
+            <span>Mago, Bruxo, Feiticeiro, Druida, Sacerdote e Bardo. Mana máxima = 8 + (modificador do atributo principal da Classe × 2). A mana reseta cheia a cada nova sessão e não regenera no meio da sessão.</span>
+          </div>
+          <div class="mini-card">
+            <b>Classes não-conjuradoras usam RECARGA</b>
+            <span>Guerreiro, Bárbaro, Paladino, Monge, Arqueiro e Ladino. Depois de usar a habilidade, só pode usá-la de novo após 2 eventos (cenas/situações) se passarem — vale tanto fora quanto dentro de uma luta de chefão.</span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Classe</th>
+                <th>Habilidade inicial</th>
+                <th>Efeito</th>
+                <th>Recurso</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Guerreiro</td><td>"Golpe Decisivo"</td><td>+1d6 de dano num ataque</td><td>Recarga: 2 eventos</td></tr>
+              <tr><td>Bárbaro</td><td>"Avanço Bruto"</td><td>Ignora uma Desvantagem</td><td>Recarga: 2 eventos</td></tr>
+              <tr><td>Paladino</td><td>"Postura Defensiva"</td><td>Reduz à metade o próximo dano recebido</td><td>Recarga: 2 eventos</td></tr>
+              <tr><td>Monge</td><td>"Passo Leve"</td><td>Repete um teste de Improviso ou Instinto</td><td>Recarga: 2 eventos</td></tr>
+              <tr><td>Arqueiro</td><td>"Tiro Calculado"</td><td>Vê o resultado do dado antes de decidir usar ou re-rolar uma vez</td><td>Recarga: 2 eventos</td></tr>
+              <tr><td>Ladino</td><td>"Esquiva Ágil"</td><td>Anula totalmente um dano recebido</td><td>Recarga: 2 eventos</td></tr>
+              <tr><td>Mago</td><td>"Disparo Arcano"</td><td>Causa dano fixo igual ao modificador de Análise, sem rolar dado</td><td>Custo: 4 Mana</td></tr>
+              <tr><td>Bruxo</td><td>"Distorção"</td><td>Força um reroll em qualquer teste (seu ou de outra pessoa)</td><td>Custo: 4 Mana</td></tr>
+              <tr><td>Feiticeiro</td><td>"Centelha Instável"</td><td>Rola 2d20 e soma os dois, mas sofre 1d4 de dano se sair algum 1</td><td>Custo: 5 Mana</td></tr>
+              <tr><td>Druida</td><td>"Forma Adaptativa"</td><td>Troca o atributo usado num teste por outro</td><td>Custo: 3 Mana</td></tr>
+              <tr><td>Sacerdote</td><td>"Cura Leve"</td><td>Recupera PV igual ao modificador de Empatia em um colega</td><td>Custo: 4 Mana</td></tr>
+              <tr><td>Bardo</td><td>"Verso Inspirador"</td><td>Dá Vantagem a um colega no próximo teste dele</td><td>Custo: 3 Mana</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="itens" data-section>
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">🎒 Loot</span>
+            <h2>13. Itens</h2>
+          </div>
+        </div>
+        <p>Raridade: <strong>Comum → Raro → Épico → Lendário</strong>.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Raridade</th>
+                <th>Definição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Comum</td>
+                <td>Item inicial da Classe (sério, sem piada) — ver tabela 3: Espada Longa, Machado de Batalha, Escudo Sagrado, Manoplas de Combate, Cajado Arcano, Adaga de Pacto, Arco Longo, Alaúde, Anel de Foco, Adagas Duplas, Cajado Sagrado, Cajado de Carvalho.</td>
+              </tr>
+              <tr>
+                <td>Raro/Épico</td>
+                <td>Itens de cenário (chefão, baú, mini-luta, interação, exploração) — criados conforme cada episódio nasce, ainda sem lista fechada.</td>
+              </tr>
+              <tr>
+                <td>Lendário</td>
+                <td>Item raríssimo, com nome e efeito cômico ligado à vida real da Adapt. Exemplos: "Teclado Mecânico de Guerra", "Caneca Furiosa de Café Triplo", "Prompt Amaldiçoado", "Bola de Cristal Instável". Combina efeito mecânico forte com a piada interna.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Fontes de drop possíveis</h3>
+        <div class="pill-list">
+          <span class="pill">Chefão</span>
+          <span class="pill">Mini-lutas</span>
+          <span class="pill">Interação narrativa</span>
+          <span class="pill">Local/exploração</span>
+          <span class="pill">Baú</span>
+        </div>
+      </section>
+
+      <section class="section" id="observacao-final" data-section>
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">📝 Documento vivo</span>
+            <h2>Observação final</h2>
+          </div>
+        </div>
+        <div class="callout">
+          Este é um documento <strong>v1</strong> — vivo, em construção. Cenários, chefões específicos e itens Raro/Épico/Lendário serão criados conforme as sessões forem rodando, e não estão fechados ainda.
+        </div>
+        <details>
+          <summary>Nota de tom para apresentação</summary>
+          <div class="details-body">
+            Leve como um pergaminho corporativo de fantasia: organizado o suficiente para consultar, mas divertido o suficiente para ninguém achar que precisa abrir chamado para entender a ficha.
+          </div>
+        </details>
+      </section>
+    </div>
+
+    <footer class="footer">
+      <p>Adaptia RPG — Livro de Regras v1. Feito para diversão interna, engajamento e boas risadas no intervalo de almoço.</p>
+    </footer>
+  </main>
+
+  <button class="back-top" type="button" id="backTop" aria-label="Voltar ao topo">↑</button>
+
+  <script>
+    (function () {
+      const menuToggle = document.querySelector('.menu-toggle');
+      const nav = document.getElementById('nav-principal');
+      const printBtn = document.getElementById('printBtn');
+      const backTop = document.getElementById('backTop');
+      const searchInput = document.getElementById('searchInput');
+      const clearSearch = document.getElementById('clearSearch');
+      const tables = Array.from(document.querySelectorAll('table'));
+      const navLinks = Array.from(document.querySelectorAll('.nav a'));
+
+      function closeMenu() {
+        nav.classList.remove('is-open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+      }
+
+      menuToggle.addEventListener('click', function () {
+        const isOpen = nav.classList.toggle('is-open');
+        menuToggle.setAttribute('aria-expanded', String(isOpen));
+      });
+
+      navLinks.forEach(function (link) {
+        link.addEventListener('click', closeMenu);
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeMenu();
+      });
+
+      printBtn.addEventListener('click', function () {
+        window.print();
+      });
+
+      backTop.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > 600) {
+          backTop.classList.add('is-visible');
+        } else {
+          backTop.classList.remove('is-visible');
+        }
+      }, { passive: true });
+
+      function normalize(text) {
+        return text
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .trim();
+      }
+
+      function filterTables(query) {
+        const term = normalize(query);
+        tables.forEach(function (table) {
+          const rows = Array.from(table.querySelectorAll('tbody tr'));
+          rows.forEach(function (row) {
+            const rowText = normalize(row.textContent || '');
+            const match = !term || rowText.includes(term);
+            row.classList.toggle('hidden-by-search', !match);
+          });
+        });
+      }
+
+      searchInput.addEventListener('input', function (event) {
+        filterTables(event.target.value);
+      });
+
+      clearSearch.addEventListener('click', function () {
+        searchInput.value = '';
+        filterTables('');
+        searchInput.focus();
+      });
+    })();
+  </script>
+</body>
+</html>

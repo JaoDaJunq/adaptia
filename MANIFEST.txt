@@ -1,0 +1,10 @@
+.nojekyll
+MANIFEST.txt
+README.md
+arquivo-antigo/criador-v1.html
+controle/index.html
+criador/index.html
+index.html
+regras/index.html
+supabase-patch.sql
+tela/index.html
