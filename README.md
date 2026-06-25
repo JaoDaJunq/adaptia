@@ -1,29 +1,31 @@
 # Adaptia RPG
 
-Estrutura pronta para GitHub Pages com login via Supabase Auth.
+Versão com login por usuário/senha e inventário em leitura na ficha do Hub.
 
-## Pastas
+## Estrutura
 
-- `index.html`: Hub inicial com login/cadastro e Meus Herois
-- `criador/index.html`: Criador de personagem vinculado ao usuario logado
+- `index.html`: Hub inicial com login, Meus Heróis, importação de ficha antiga e ficha completa com inventário
+- `criador/index.html`: Criador de personagem com login e item inicial no inventário sem equipar automaticamente
 - `tela/index.html`: Tela do Mestre
-- `controle/index.html`: Controle do jogador com escolha de personagem da conta
-- `regras/index.html`: Livro de Regras
-- `arquivo-antigo/criador-v1.html`: Backup da versao antiga do criador
+- `controle/index.html`: Controle do jogador com login
+- `regras/index.html`: Livro de regras
+- `arquivo-antigo/criador-v1.html`: Backup da versão antiga do criador
 
-## Publicacao
+## Publicação
 
-Suba todos os arquivos e pastas na raiz do repositorio GitHub e ative o GitHub Pages em:
+Suba o conteúdo extraído deste ZIP na raiz do repositório GitHub Pages.
 
-Settings > Pages > Deploy from a branch > main > /root
+Não suba a pasta-mãe nem o ZIP fechado.
 
-## Supabase
+## Inventário
 
-Antes de usar a versao com login:
+Este passo adiciona no Hub o botão `Abrir ficha`, exibindo:
 
-1. Authentication > Sign In / Providers
-2. Email provider habilitado
-3. Confirm email desligado
-4. Rodar `supabase-patch.sql` no SQL Editor
+- dados básicos do personagem
+- nível, XP, PV e mana
+- atributos e modificadores
+- inventário vindo de `personagem_itens`
+- dados do item vindo de `itens_catalogo`
+- itens equipados, se houver
+- habilidades e sinergia
 
-O login visual usa usuario + senha, mas internamente o app converte para um e-mail do tipo `usuario@adaptia.local`.

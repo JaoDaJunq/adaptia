@@ -168,7 +168,7 @@
     .action-card p { margin: 4px 0 0; color: var(--muted); font-size: .92rem; }
     .arrow { color: var(--gold-2); font-size: 1.8rem; font-weight: 900; }
     .gallery-grid { display: grid; gap: 12px; }
-    .hero-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; min-width: 0; padding: 13px; border-radius: 20px; border: 1px solid rgba(255,255,255,.11); background: linear-gradient(135deg, rgba(255,246,223,.08), rgba(255,246,223,.025)), rgba(255,255,255,.045); }
+    .hero-card { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 12px; min-width: 0; padding: 13px; border-radius: 20px; border: 1px solid rgba(255,255,255,.11); background: linear-gradient(135deg, rgba(255,246,223,.08), rgba(255,246,223,.025)), rgba(255,255,255,.045); }
     .hero-meta { min-width: 0; }
     .hero-meta strong { display: block; color: #fff4cf; font-size: 1.05rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
     .hero-meta span { display: block; margin-top: 2px; color: var(--muted); font-size: .86rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -177,6 +177,34 @@
     .emblem-svg { display: block; width: var(--size, 82px); height: var(--size, 82px); filter: drop-shadow(0 10px 16px rgba(0,0,0,.30)); }
     .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
     .small-note { margin-top: 18px; color: rgba(255,248,232,.56); font-size: .86rem; text-align: center; }
+
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+    .sheet-detail { display: grid; gap: 16px; }
+    .sheet-hero { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; padding: 16px; border-radius: 24px; border: 1px solid rgba(243,201,91,.32); background: radial-gradient(circle at 10% 0%, rgba(255,228,138,.20), transparent 34%), linear-gradient(135deg, rgba(243,201,91,.13), rgba(134,217,255,.06)); }
+    .sheet-hero h3 { color: var(--gold-2); font-size: clamp(1.8rem, 8vw, 3rem); overflow-wrap: anywhere; }
+    .sheet-hero p { margin: 6px 0 0; color: var(--muted); }
+    .sheet-block { display: grid; gap: 10px; padding: 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,.11); background: rgba(255,255,255,.055); }
+    .sheet-block h3 { color: var(--gold-2); font-size: 1.35rem; }
+    .info-grid { display: grid; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .info-tile { padding: 11px; border-radius: 16px; background: rgba(0,0,0,.18); border: 1px solid rgba(255,255,255,.10); }
+    .info-tile small { display: block; color: rgba(255,248,232,.66); font-size: .72rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+    .info-tile strong, .info-tile span { display: block; margin-top: 3px; color: #fff4cf; font-weight: 950; overflow-wrap: anywhere; }
+    .attr-grid { display: grid; gap: 8px; }
+    .attr-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 8px; padding: 11px 12px; border-radius: 15px; border: 1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.16); }
+    .attr-row strong { color: #fff4cf; }
+    .attr-row .num { min-width: 42px; padding: 5px 8px; text-align: center; border-radius: 10px; background: rgba(255,228,138,.18); color: var(--gold-2); font-weight: 1000; }
+    .attr-row .mod { min-width: 58px; padding: 5px 8px; text-align: center; border-radius: 999px; background: rgba(134,217,255,.13); color: #dff7ff; font-weight: 950; font-size: .88rem; }
+    .inventory-grid { display: grid; gap: 10px; }
+    .item-card { display: grid; gap: 8px; padding: 13px; border-radius: 18px; border: 1px solid rgba(255,255,255,.11); background: linear-gradient(135deg, rgba(255,246,223,.08), rgba(255,246,223,.025)), rgba(255,255,255,.045); }
+    .item-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .item-top strong { color: #fff4cf; font-size: 1.05rem; }
+    .item-card p { margin: 0; color: var(--muted); font-size: .92rem; }
+    .item-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .item-tag { display: inline-flex; align-items: center; min-height: 28px; padding: 4px 8px; border-radius: 999px; color: var(--muted); background: rgba(0,0,0,.20); border: 1px solid rgba(255,255,255,.10); font-size: .78rem; font-weight: 900; }
+    .item-tag.good { color: #dfffd8; border-color: rgba(155,227,141,.32); background: rgba(155,227,141,.10); }
+    .item-tag.gold { color: #24160b; border-color: transparent; background: linear-gradient(135deg, var(--gold-2), var(--gold)); }
+    .effect-code { display: block; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 4px; padding: 8px 10px; border-radius: 12px; background: rgba(0,0,0,.20); color: #fff0bf; font-size: .8rem; }
+    .hidden { display: none !important; }
     @media (min-width: 720px) { .app-shell { padding: 28px 20px 70px; } .hero { padding: 36px; } .section { padding: 26px; } .stats-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); } .cta-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } .action-card { grid-template-columns: 1fr; align-items: start; min-height: 205px; } .arrow { position: absolute; right: 18px; bottom: 14px; } .gallery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (min-width: 1020px) { .gallery-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   </style>
@@ -226,6 +254,17 @@
         </div>
         <div id="galleryArea"><div class="status-line"><span class="loader-dot"></span><span>Aguardando login...</span></div></div>
       </section>
+
+      <section class="section hidden" id="sheetSection" aria-labelledby="fichaTitle">
+        <div class="section-header">
+          <div>
+            <h2 id="fichaTitle">Ficha do Herói</h2>
+            <p>Resumo completo do personagem, atributos e inventário atual.</p>
+          </div>
+          <button class="mini-btn" type="button" data-action="close-sheet">Fechar ficha</button>
+        </div>
+        <div id="sheetArea"></div>
+      </section>
     </main>
 
     <p class="small-note">Uso interno e confiável da Adapt. Nenhum dragão foi ferido durante este carregamento.</p>
@@ -241,7 +280,10 @@
     const DEFAULT_APPEARANCE = { forma: 'escudo', cor: 'dourado', icone: 'estrela', nivel_visual: 1 };
     const authArea = document.getElementById('authArea');
     const galleryArea = document.getElementById('galleryArea');
-    const state = { mode: 'login', user: null, profile: null, characters: [], busy: false, message: null };
+    const sheetSection = document.getElementById('sheetSection');
+    const sheetArea = document.getElementById('sheetArea');
+    const ATTRIBUTES = ['Análise', 'Precisão', 'Lábia', 'Criatividade', 'Resiliência', 'Instinto', 'Improviso', 'Empatia'];
+    const state = { mode: 'login', user: null, profile: null, characters: [], busy: false, message: null, selectedCharacterId: null, sheetInventory: [] };
 
     function escapeHTML(value) { return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[char])); }
     function usernameToEmail(username) { return `${String(username || '').trim().toLowerCase()}@adaptia.local`; }
@@ -263,10 +305,59 @@
       authArea.innerHTML = `<article class="auth-card"><div class="auth-tabs"><button class="tab-btn ${state.mode === 'login' ? 'active' : ''}" type="button" data-action="mode-login">Entrar</button><button class="tab-btn ${state.mode === 'signup' ? 'active' : ''}" type="button" data-action="mode-signup">Criar conta</button></div><div class="form-grid"><label for="usernameInput">Usuário</label><input id="usernameInput" type="text" autocomplete="username" placeholder="Ex: lorenzo" maxlength="30"><label for="passwordInput">Senha</label><input id="passwordInput" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres"><button class="btn" type="button" data-action="auth-submit" ${state.busy ? 'disabled' : ''}>${state.busy ? 'Aguarde...' : state.mode === 'signup' ? 'Criar conta' : 'Entrar'}</button></div><p class="muted">Você verá só os personagens criados ou importados nessa conta. Por baixo, usamos um e-mail interno @adaptia.local.</p>${state.message ? status(state.message.text, state.message.type === 'error' ? 'error' : 'success') : ''}</article>`;
     }
 
+    function modifier(value) { return Math.floor(Number(value || 0) / 2); }
+    function formatJson(value) {
+      if (!value || (typeof value === 'object' && Object.keys(value).length === 0)) return 'Sem efeito cadastrado.';
+      try { return JSON.stringify(value, null, 2); } catch (e) { return String(value); }
+    }
+    function formatList(value) {
+      if (!value) return 'Nenhuma informação cadastrada.';
+      if (Array.isArray(value)) return value.length ? value.map(item => escapeHTML(typeof item === 'string' ? item : JSON.stringify(item))).join('<br>') : 'Nenhuma informação cadastrada.';
+      if (typeof value === 'object') return `<span class="effect-code">${escapeHTML(JSON.stringify(value, null, 2))}</span>`;
+      return escapeHTML(value);
+    }
+    function itemFromRow(row) { return row?.itens_catalogo || row?.item || {}; }
+    function renderInventoryItem(row) {
+      const item = itemFromRow(row);
+      const raridade = item.raridade || 'comum';
+      const equipado = row.equipado ? '<span class="item-tag good">Equipado</span>' : '<span class="item-tag">Na mochila</span>';
+      const usos = row.usos_restantes === null || row.usos_restantes === undefined ? '' : `<span class="item-tag">Usos: ${Number(row.usos_restantes)}</span>`;
+      return `<article class="item-card"><div class="item-top"><strong>${escapeHTML(item.nome || 'Item sem nome')}</strong><span class="item-tag gold">x${Number(row.quantidade || 1)}</span></div><div class="item-tags">${equipado}<span class="item-tag">${escapeHTML(item.tipo || 'item')}</span><span class="item-tag">${escapeHTML(raridade)}</span><span class="item-tag">Slot: ${escapeHTML(row.slot_equipado || item.slot || 'nenhum')}</span>${usos}</div><p>${escapeHTML(item.descricao || 'Sem descrição cadastrada.')}</p><span class="effect-code">${escapeHTML(formatJson(item.efeito))}</span></article>`;
+    }
+    function renderCharacterSheet(character, inventoryRows = []) {
+      if (!character) { sheetArea.innerHTML = status('Personagem não encontrado na sua conta.', 'error'); return; }
+      const attrs = character.atributos || {};
+      const equipped = inventoryRows.filter(row => row.equipado);
+      const inventoryHtml = inventoryRows.length ? inventoryRows.map(renderInventoryItem).join('') : '<div class="empty-box"><h3>Inventário vazio</h3><p>Este personagem ainda não tem itens registrados em personagem_itens.</p></div>';
+      const equippedHtml = equipped.length ? equipped.map(renderInventoryItem).join('') : '<div class="empty-box"><h3>Nenhum item equipado</h3><p>Os itens aparecem na mochila, mas nada está equipado ainda. Isso está certo para a regra atual.</p></div>';
+      sheetArea.innerHTML = `<article class="sheet-detail"><div class="sheet-hero">${renderEmblem(character.aparencia, 92, `Emblema de ${character.nome || 'personagem'}`)}<div><p class="eyebrow">Ficha completa</p><h3>${escapeHTML(character.nome || 'Personagem sem nome')}</h3><p>${escapeHTML(character.linhagem || 'Sem linhagem')} • ${escapeHTML(character.classe || 'Sem classe')}</p></div></div><div class="info-grid"><div class="info-tile"><small>Nível</small><strong>${Number(character.nivel || 1)}</strong></div><div class="info-tile"><small>XP atual</small><strong>${Number(character.xp_atual || 0)}</strong></div><div class="info-tile"><small>PV</small><strong>${Number(character.pv_atual ?? character.pv_max ?? 0)} / ${Number(character.pv_max || 0)}</strong></div><div class="info-tile"><small>Mana</small><strong>${Number(character.mana_atual || 0)} / ${Number(character.mana_max || 0)}</strong></div><div class="info-tile"><small>Recurso</small><strong>${escapeHTML(character.recurso_tipo || 'Não informado')}</strong></div><div class="info-tile"><small>Código da ficha</small><strong>${escapeHTML(character.codigo_ficha || 'Sem código')}</strong></div><div class="info-tile"><small>Item inicial</small><strong>${escapeHTML(character.item_inicial || 'Não informado')}</strong></div><div class="info-tile"><small>Classe</small><strong>${escapeHTML(character.classe || 'Sem classe')}</strong></div></div><section class="sheet-block"><h3>📊 Atributos</h3><div class="attr-grid">${ATTRIBUTES.map(attr => `<div class="attr-row"><strong>${escapeHTML(attr)}</strong><span class="num">${Number(attrs[attr] || 0)}</span><span class="mod">mod ${modifier(attrs[attr])}</span></div>`).join('')}</div></section><section class="sheet-block"><h3>🎒 Inventário</h3><div class="inventory-grid">${inventoryHtml}</div></section><section class="sheet-block"><h3>🛡️ Itens equipados</h3><div class="inventory-grid">${equippedHtml}</div></section><section class="sheet-block"><h3>✨ Habilidades</h3><p class="muted">${formatList(character.habilidades)}</p></section><section class="sheet-block"><h3>🔗 Sinergia</h3><p class="muted">${formatList(character.sinergia)}</p></section></article>`;
+    }
+    function closeSheet() { state.selectedCharacterId = null; state.sheetInventory = []; sheetSection.classList.add('hidden'); sheetArea.innerHTML = ''; }
+    async function openCharacterSheet(characterId) {
+      if (!state.user) return;
+      const character = state.characters.find(item => item.id === characterId);
+      state.selectedCharacterId = characterId;
+      sheetSection.classList.remove('hidden');
+      sheetArea.innerHTML = status('Carregando ficha e inventário...', 'loading');
+      sheetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      try {
+        const { data, error } = await supabaseClient
+          .from('personagem_itens')
+          .select('id, personagem_id, item_id, quantidade, equipado, slot_equipado, usos_restantes, criado_em, itens_catalogo(nome, tipo, raridade, descricao, slot, efeito, nivel_minimo, classe_restrita)')
+          .eq('personagem_id', characterId)
+          .order('criado_em', { ascending: true });
+        if (error) throw error;
+        state.sheetInventory = data || [];
+        renderCharacterSheet(character, state.sheetInventory);
+      } catch (error) {
+        sheetArea.innerHTML = status(`Erro ao carregar inventário: ${error.message || error}`, 'error');
+      }
+    }
+
     function renderGallery(characters) {
       if (!state.user) { galleryArea.innerHTML = status('Faça login para ver seus heróis.', 'loading'); return; }
-      if (!characters || characters.length === 0) { galleryArea.innerHTML = `<div class="empty-box"><h3>Nenhum herói vinculado a esta conta ainda.</h3><p>Crie um personagem novo ou importe uma ficha antiga pelo código.</p><a class="btn" href="./criador/">Criar Personagem</a></div>`; return; }
-      galleryArea.innerHTML = `<div class="gallery-grid">${characters.map(character => `<article class="hero-card">${renderEmblem(character.aparencia, 58, `Emblema de ${character.nome || 'personagem'}`)}<div class="hero-meta"><strong>${escapeHTML(character.nome || 'Personagem sem nome')}</strong><span>${escapeHTML(character.linhagem || 'Sem linhagem')} + ${escapeHTML(character.classe || 'Sem classe')}</span></div><span class="level-pill">Nv. ${Number(character.nivel || 1)}</span></article>`).join('')}</div>`;
+      if (!characters || characters.length === 0) { galleryArea.innerHTML = `<div class="empty-box"><h3>Nenhum herói vinculado a esta conta ainda.</h3><p>Crie um personagem novo ou importe uma ficha antiga pelo código.</p><a class="btn" href="./criador/">Criar Personagem</a></div>`; closeSheet(); return; }
+      galleryArea.innerHTML = `<div class="gallery-grid">${characters.map(character => `<article class="hero-card">${renderEmblem(character.aparencia, 58, `Emblema de ${character.nome || 'personagem'}`)}<div class="hero-meta"><strong>${escapeHTML(character.nome || 'Personagem sem nome')}</strong><span>${escapeHTML(character.linhagem || 'Sem linhagem')} + ${escapeHTML(character.classe || 'Sem classe')}</span><div class="hero-actions"><span class="level-pill">Nv. ${Number(character.nivel || 1)}</span><button class="mini-btn" type="button" data-action="open-sheet" data-character-id="${escapeHTML(character.id)}">Abrir ficha</button></div></div></article>`).join('')}</div>`;
     }
 
     async function loadProfile() {
@@ -279,7 +370,7 @@
     async function loadCharacters() {
       if (!state.user) { renderGallery([]); return; }
       galleryArea.innerHTML = status('Carregando seus heróis...', 'loading');
-      const { data, error } = await supabaseClient.from('personagens').select('id, codigo_ficha, nome, linhagem, classe, nivel, xp_atual, pv_max, pv_atual, aparencia, owner_id').eq('owner_id', state.user.id).order('nivel', { ascending: false }).order('xp_atual', { ascending: false });
+      const { data, error } = await supabaseClient.from('personagens').select('id, codigo_ficha, nome, linhagem, classe, atributos, sinergia, nivel, xp_atual, pv_max, pv_atual, mana_max, mana_atual, recurso_tipo, item_inicial, inventario, habilidades, aparencia, owner_id').eq('owner_id', state.user.id).order('nivel', { ascending: false }).order('xp_atual', { ascending: false });
       if (error) { galleryArea.innerHTML = status('Erro ao carregar seus heróis. Confira políticas RLS/personagens.', 'error'); return; }
       state.characters = data || [];
       renderGallery(state.characters);
@@ -324,7 +415,7 @@
         renderAuth();
       } finally { state.busy = false; renderAuth(); }
     }
-    async function logout() { await supabaseClient.auth.signOut(); state.user = null; state.profile = null; state.characters = []; setMessage(null, ''); renderAuth(); renderGallery([]); }
+    async function logout() { await supabaseClient.auth.signOut(); state.user = null; state.profile = null; state.characters = []; closeSheet(); setMessage(null, ''); renderAuth(); renderGallery([]); }
     async function importCharacter() {
       if (!state.user) return;
       const code = String(document.getElementById('importCodeInput')?.value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -355,6 +446,8 @@
       if (action === 'auth-submit') handleAuthSubmit();
       if (action === 'logout') logout();
       if (action === 'import-character') importCharacter();
+      if (action === 'open-sheet') openCharacterSheet(event.target.closest('[data-character-id]')?.dataset.characterId);
+      if (action === 'close-sheet') closeSheet();
     });
     document.addEventListener('keydown', event => { if (event.key === 'Enter' && !state.user && document.activeElement && ['usernameInput', 'passwordInput'].includes(document.activeElement.id)) handleAuthSubmit(); });
     supabaseClient?.auth.onAuthStateChange(() => { refreshAuth(); });

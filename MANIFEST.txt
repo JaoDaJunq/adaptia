@@ -1,12 +1,16 @@
-Adaptia RPG - Inventario Passo 3
+Adaptia RPG - Inventário Passo 4
 
-Estrutura:
-- index.html: Hub com login e Meus Herois
-- criador/index.html: Criador com login + item inicial salvo em personagem_itens sem equipar automaticamente
-- controle/index.html: Controle com login e selecao de personagem
+Arquivos:
+- index.html: Hub com ficha completa e inventário
+- criador/index.html: Criador com item inicial em personagem_itens sem equipar
+- controle/index.html: Controle com login
 - tela/index.html: Tela do Mestre
-- regras/index.html: Livro de Regras
-- arquivo-antigo/criador-v1.html: backup antigo
+- regras/index.html: Livro de regras
+- supabase-patch.sql: patch base/login/realtime
+- arquivo-antigo/criador-v1.html: backup
 
-Observacao:
-Este pacote assume que o SQL do Inventario Passo 1 ja foi rodado no Supabase.
+Validação esperada:
+1. Login no Hub
+2. Card do herói mostra botão Abrir ficha
+3. Ficha abre com atributos, PV, mana, código, item inicial
+4. Inventário lista itens de personagem_itens com dados de itens_catalogo
