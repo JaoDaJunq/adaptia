@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adaptia RPG — Tela do Mestre</title>
+  <meta name="description" content="Tela do Mestre para sessões do RPG interno Adaptia, com Supabase Realtime, eventos, chefão, XP e resolução automática." />
+  <meta property="og:title" content="Adaptia RPG — Tela do Mestre" />
+  <meta property="og:description" content="Controle narrativo em tempo real para o RPG interno da Adapt." />
+  <meta property="og:type" content="website" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #12091f;
+      --bg-2: #1d1030;
+      --bg-3: #281642;
+      --panel: rgba(33, 19, 54, 0.88);
+      --panel-strong: rgba(43, 24, 73, 0.96);
+      --gold: #f4c96b;
+      --gold-2: #ffe5a4;
+      --amber: #d8922b;
+      --purple: #9c6df4;
+      --cyan: #8be9fd;
+      --green: #69e58f;
+      --red: #ff6b7a;
+      --muted: #c6bad8;
+      --text: #fff8eb;
+      --line: rgba(244, 201, 107, 0.22);
+      --shadow: 0 28px 70px rgba(0, 0, 0, 0.35);
+      --radius: 24px;
+      --radius-sm: 16px;
+      --font-title: Georgia, 'Times New Roman', serif;
+      --font-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(244, 201, 107, 0.18), transparent 28%),
+        radial-gradient(circle at 90% 18%, rgba(156, 109, 244, 0.28), transparent 34%),
+        radial-gradient(circle at 50% 100%, rgba(139, 233, 253, 0.10), transparent 34%),
+        linear-gradient(135deg, var(--bg), #0a0711 70%);
+      color: var(--text);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.55;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: radial-gradient(circle at center, black, transparent 80%);
+    }
+
+    button, input { font: inherit; }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+
+    button:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.05); }
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .app-shell {
+      width: min(1440px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 26px 0 44px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(20, 10, 35, 0.78);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 14px;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .sigil {
+      width: 56px;
+      height: 56px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      background: linear-gradient(145deg, rgba(244,201,107,0.24), rgba(156,109,244,0.28));
+      border: 1px solid rgba(244, 201, 107, 0.34);
+      box-shadow: inset 0 0 28px rgba(244, 201, 107, 0.12), 0 14px 36px rgba(0,0,0,0.28);
+      font-size: 1.65rem;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-family: var(--font-title);
+      font-size: clamp(1.35rem, 3vw, 2.25rem);
+      letter-spacing: 0.02em;
+      color: var(--gold-2);
+      line-height: 1.05;
+    }
+
+    .brand p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: clamp(0.85rem, 1.6vw, 1rem);
+    }
+
+    .connection-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--muted);
+      white-space: nowrap;
+      font-size: 0.95rem;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--amber);
+      box-shadow: 0 0 16px currentColor;
+    }
+
+    .dot.ok { background: var(--green); }
+    .dot.bad { background: var(--red); }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 22px;
+      margin-top: 22px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-inner { padding: clamp(22px, 4vw, 42px); }
+
+    .hero {
+      min-height: 62vh;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero::after {
+      content: '';
+      width: 220px;
+      height: 220px;
+      position: absolute;
+      right: -60px;
+      bottom: -70px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(244, 201, 107, 0.22), transparent 68%);
+      filter: blur(4px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(244, 201, 107, 0.28);
+      background: rgba(244, 201, 107, 0.08);
+      color: var(--gold-2);
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .title {
+      margin: 0;
+      font-family: var(--font-title);
+      font-size: clamp(2.6rem, 7vw, 6.5rem);
+      line-height: 0.95;
+      color: var(--gold-2);
+      text-shadow: 0 8px 28px rgba(0,0,0,0.35);
+    }
+
+    .subtitle {
+      width: min(920px, 100%);
+      margin: 18px auto 0;
+      color: var(--muted);
+      font-size: clamp(1.12rem, 2.2vw, 1.6rem);
+      line-height: 1.48;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 30px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold), #f7a83c);
+      color: #211000;
+      padding: 16px 24px;
+      font-weight: 900;
+      font-size: clamp(1rem, 1.7vw, 1.25rem);
+      box-shadow: 0 18px 42px rgba(216, 146, 43, 0.28);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.16);
+      padding: 14px 20px;
+      font-weight: 800;
+    }
+
+    .btn-danger {
+      background: rgba(255, 107, 122, 0.13);
+      color: #ffd9de;
+      border: 1px solid rgba(255, 107, 122, 0.28);
+      padding: 14px 20px;
+      font-weight: 800;
+    }
+
+    .btn-mini {
+      padding: 10px 14px;
+      font-weight: 850;
+      background: rgba(244, 201, 107, 0.13);
+      border: 1px solid rgba(244, 201, 107, 0.32);
+      color: var(--gold-2);
+      white-space: nowrap;
+    }
+
+    .code-card {
+      padding: clamp(24px, 5vw, 56px);
+      text-align: center;
+      background:
+        linear-gradient(180deg, rgba(244, 201, 107, 0.12), transparent),
+        rgba(0,0,0,0.14);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .session-code {
+      margin: 0;
+      font-family: var(--font-title);
+      font-size: clamp(5rem, 18vw, 15rem);
+      letter-spacing: 0.12em;
+      line-height: 0.9;
+      color: var(--gold-2);
+      text-shadow: 0 0 28px rgba(244, 201, 107, 0.28), 0 14px 42px rgba(0,0,0,0.52);
+    }
+
+    .code-card p {
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: clamp(1.05rem, 2.2vw, 1.5rem);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-family: var(--font-title);
+      color: var(--gold-2);
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      line-height: 1.05;
+    }
+
+    .section-head p, .muted {
+      color: var(--muted);
+      margin: 8px 0 0;
+      line-height: 1.5;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .player-card, .event-card, .log-card, .stat-card {
+      border: 1px solid rgba(244, 201, 107, 0.18);
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.055);
+      padding: 18px;
+      box-shadow: 0 12px 34px rgba(0,0,0,0.22);
+    }
+
+    .player-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .player-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .player-name {
+      margin: 0;
+      color: #fff;
+      font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+      font-weight: 900;
+    }
+
+    .player-meta {
+      color: var(--muted);
+      margin-top: 4px;
+      font-size: 0.98rem;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 0.88rem;
+      white-space: nowrap;
+    }
+
+    .tag.ok { color: #d9ffe3; border-color: rgba(105,229,143,0.32); background: rgba(105,229,143,0.10); }
+    .tag.wait { color: #fff0cf; border-color: rgba(244,201,107,0.28); background: rgba(244,201,107,0.10); }
+    .tag.danger { color: #ffd6dc; border-color: rgba(255,107,122,0.32); background: rgba(255,107,122,0.10); }
+    .tag.info { color: #d7f8ff; border-color: rgba(139,233,253,0.24); background: rgba(139,233,253,0.08); }
+
+    .hpbar {
+      width: 100%;
+      height: 13px;
+      background: rgba(0,0,0,0.28);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .hpbar > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green), var(--gold));
+      transition: width 0.45s ease;
+    }
+
+    .hpbar.boss > span {
+      background: linear-gradient(90deg, var(--red), #ffb15c, var(--gold));
+      box-shadow: 0 0 22px rgba(255, 107, 122, 0.25);
+    }
+
+    .event-card {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(22px, 4vw, 40px);
+      min-height: 260px;
+    }
+
+    .event-card::before {
+      content: '';
+      position: absolute;
+      inset: -100px auto auto -100px;
+      width: 260px;
+      height: 260px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(244,201,107,0.18), transparent 70%);
+      pointer-events: none;
+    }
+
+    .event-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(156,109,244,0.14);
+      border: 1px solid rgba(156,109,244,0.26);
+      color: #eadfff;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-size: 0.85rem;
+    }
+
+    .event-title {
+      margin: 0;
+      font-family: var(--font-title);
+      font-size: clamp(2.3rem, 5vw, 5rem);
+      color: var(--gold-2);
+      line-height: 0.98;
+      position: relative;
+    }
+
+    .narrative {
+      margin: 18px 0 0;
+      font-size: clamp(1.2rem, 2.4vw, 1.8rem);
+      line-height: 1.45;
+      color: #f6efff;
+      position: relative;
+    }
+
+    .event-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .big-stat {
+      min-width: 150px;
+      flex: 1;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(244, 201, 107, 0.22);
+      background: rgba(0,0,0,0.18);
+      padding: 14px;
+    }
+
+    .big-stat strong {
+      display: block;
+      font-size: clamp(1.6rem, 4vw, 2.8rem);
+      line-height: 1;
+      color: var(--gold-2);
+      font-family: var(--font-title);
+    }
+
+    .big-stat span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.78rem;
+    }
+
+    .boss-health {
+      margin-top: 22px;
+      border-radius: var(--radius-sm);
+      background: rgba(0,0,0,0.24);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 18px;
+    }
+
+    .boss-health-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+      font-weight: 900;
+      color: var(--gold-2);
+      font-size: clamp(1.1rem, 2vw, 1.45rem);
+    }
+
+    .controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+      padding-top: 22px;
+      border-top: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .dice-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .dice {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(145deg, rgba(244,201,107,0.24), rgba(156,109,244,0.24));
+      border: 1px solid rgba(244,201,107,0.32);
+      color: var(--gold-2);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.22);
+      animation: diceFloat 2.8s ease-in-out infinite;
+    }
+
+    .dice.rolling { animation: diceRoll 0.55s ease-in-out 2; }
+
+    @keyframes diceFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-5px) rotate(4deg); }
+    }
+
+    @keyframes diceRoll {
+      0% { transform: rotate(0deg) scale(1); }
+      30% { transform: rotate(80deg) scale(1.09); }
+      70% { transform: rotate(-60deg) scale(0.95); }
+      100% { transform: rotate(0deg) scale(1); }
+    }
+
+    .empty-state {
+      padding: 30px;
+      border-radius: var(--radius-sm);
+      border: 1px dashed rgba(244,201,107,0.32);
+      background: rgba(244,201,107,0.06);
+      text-align: center;
+      color: var(--muted);
+      font-size: 1.12rem;
+    }
+
+    .log-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 320px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .log-item {
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.16);
+      color: #fdf5e7;
+      line-height: 1.45;
+    }
+
+    .log-item strong { color: var(--gold-2); }
+
+    .alert {
+      margin-top: 18px;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      border: 1px solid rgba(255,107,122,0.32);
+      background: rgba(255,107,122,0.11);
+      color: #ffe1e5;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .success-note {
+      margin-top: 18px;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      border: 1px solid rgba(105,229,143,0.28);
+      background: rgba(105,229,143,0.09);
+      color: #dbffe5;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .summary-card h3 {
+      margin: 0 0 10px;
+      color: #fff;
+      font-size: 1.35rem;
+    }
+
+    .summary-card {
+      border: 1px solid rgba(244,201,107,0.20);
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.055);
+      padding: 18px;
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 10px;
+      margin-top: 10px;
+      color: var(--muted);
+    }
+
+    .summary-line strong { color: var(--gold-2); }
+
+    .loading {
+      min-height: 360px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      font-size: 1.2rem;
+    }
+
+    .small-note {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 10px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 920px) {
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .connection-pill { white-space: normal; }
+      .two-col { grid-template-columns: 1fr; }
+      .section-head { align-items: flex-start; flex-direction: column; }
+      .controls-bar { align-items: stretch; flex-direction: column; }
+      .controls-bar button { width: 100%; }
+    }
+
+    @media (max-width: 560px) {
+      .app-shell { width: min(100% - 20px, 1440px); padding-top: 10px; }
+      .topbar { top: 8px; border-radius: 18px; padding: 14px; }
+      .sigil { width: 46px; height: 46px; border-radius: 14px; }
+      .panel-inner { padding: 18px; }
+      .hero { min-height: 68vh; }
+      .btn-primary, .btn-secondary, .btn-danger { width: 100%; }
+      .actions { width: 100%; }
+      .session-code { font-size: clamp(4.2rem, 26vw, 8rem); }
+      .grid { grid-template-columns: 1fr; }
+      .event-stats { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar" aria-label="Cabeçalho da Tela do Mestre">
+      <div class="brand">
+        <div class="sigil" aria-hidden="true">⚔️</div>
+        <div>
+          <h1>Adaptia RPG</h1>
+          <p>Tela do Mestre · Realtime · Almoço edition</p>
+        </div>
+      </div>
+      <div class="connection-pill" id="connectionStatus">
+        <span class="dot" id="connectionDot"></span>
+        <span id="connectionText">Preparando grimório...</span>
+      </div>
+    </header>
+
+    <main id="app" class="main-grid" aria-live="polite"></main>
+  </div>
+
+  <script>
+    const URL = 'https://ombgpykvguopgdcdiyqc.supabase.co';
+    const KEY = 'sb_publishable_FbK97rXHFN_Y8xcQD7ZqEQ_rXWaOcgR';
+    const TEST_CHAPTER_ID = '11111111-1111-4111-8111-111111111111';
+
+    const supabaseClient = supabase.createClient(URL, KEY);
+
+    const CLASS_PRIMARY_ATTRIBUTE = {
+      'Guerreiro': 'Resiliência',
+      'Bárbaro': 'Resiliência',
+      'Paladino': 'Precisão',
+      'Monge': 'Instinto',
+      'Mago': 'Análise',
+      'Bruxo': 'Improviso',
+      'Arqueiro': 'Precisão',
+      'Bardo': 'Lábia',
+      'Feiticeiro': 'Instinto',
+      'Ladino': 'Improviso',
+      'Sacerdote': 'Lábia',
+      'Druida': 'Criatividade'
+    };
+
+    const state = {
+      loading: false,
+      busy: false,
+      error: '',
+      session: null,
+      chapter: null,
+      participants: [],
+      actions: [],
+      allSessionActions: [],
+      messages: [],
+      channels: [],
+      screen: 'create'
+    };
+
+    const app = document.getElementById('app');
+    const connectionDot = document.getElementById('connectionDot');
+    const connectionText = document.getElementById('connectionText');
+
+    function setConnection(text, status = 'idle') {
+      connectionText.textContent = text;
+      connectionDot.className = 'dot' + (status === 'ok' ? ' ok' : status === 'bad' ? ' bad' : '');
+    }
+
+    function setError(message) {
+      state.error = message || '';
+      if (message) setConnection('Erro visível no painel', 'bad');
+      render();
+    }
+
+    function clearError() {
+      state.error = '';
+    }
+
+    function escapeHTML(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function uid() {
+      return Math.random().toString(36).slice(2, 10);
+    }
+
+    function randomCode() {
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      let code = '';
+      for (let i = 0; i < 4; i++) code += letters[Math.floor(Math.random() * letters.length)];
+      return code;
+    }
+
+    function rollDie(sides) {
+      return Math.floor(Math.random() * sides) + 1;
+    }
+
+    function rollD20() {
+      animateDice();
+      return rollDie(20);
+    }
+
+    function rollDiceExpression(expr) {
+      const match = String(expr || '').trim().match(/^(\d+)d(\d+)$/i);
+      if (!match) return 0;
+      const count = Number(match[1]);
+      const sides = Number(match[2]);
+      let total = 0;
+      for (let i = 0; i < count; i++) total += rollDie(sides);
+      return total;
+    }
+
+    function modifier(character, attribute) {
+      const value = Number(character?.atributos?.[attribute] ?? 0);
+      return Math.floor(value / 2);
+    }
+
+    function classModifier(character) {
+      const attribute = CLASS_PRIMARY_ATTRIBUTE[character?.classe] || 'Resiliência';
+      return modifier(character, attribute);
+    }
+
+    function bossRoundStart() {
+      return state.session?.chefao_estado?.rodada_inicio_em || null;
+    }
+
+    function currentEvent() {
+      if (!state.chapter || !state.session) return null;
+      return state.chapter.eventos?.[state.session.evento_atual_index] || null;
+    }
+
+    function hpPercent(current, max) {
+      if (!max) return 0;
+      return Math.max(0, Math.min(100, Math.round((Number(current || 0) / Number(max)) * 100)));
+    }
+
+    function addMessage(message) {
+      state.messages.unshift({ id: uid(), text: message, at: new Date().toISOString() });
+      state.messages = state.messages.slice(0, 24);
+    }
+
+    function animateDice() {
+      const dice = document.querySelector('.dice');
+      if (!dice) return;
+      dice.classList.remove('rolling');
+      void dice.offsetWidth;
+      dice.classList.add('rolling');
+    }
+
+    async function createNewSession() {
+      clearError();
+      state.busy = true;
+      render();
+
+      for (let attempt = 1; attempt <= 5; attempt++) {
+        const code = randomCode();
+        const { data, error } = await supabaseClient
+          .from('sessoes')
+          .insert({
+            codigo: code,
+            capitulo_id: TEST_CHAPTER_ID,
+            status: 'aguardando',
+            evento_atual_index: 0,
+            chefao_estado: null
+          })
+          .select()
+          .single();
+
+        if (!error && data) {
+          state.busy = false;
+          state.session = data;
+          localStorage.setItem('adaptia_mestre_sessao_id', data.id);
+          addMessage(`🧙 Sessão ${code} criada. A taverna do briefing está aberta.`);
+          await loadFullState(data.id);
+          await subscribeToSession(data.id);
+          return;
+        }
+
+        const maybeDuplicate = error && (error.code === '23505' || String(error.message || '').toLowerCase().includes('duplicate'));
+        if (!maybeDuplicate || attempt === 5) {
+          state.busy = false;
+          setError(`Não foi possível criar a sessão. Detalhe: ${error?.message || 'erro desconhecido'}`);
+          return;
+        }
+      }
+    }
+
+    async function loadFullState(sessionId) {
+      if (!sessionId) return;
+      state.loading = true;
+      render();
+
+      try {
+        const { data: session, error: sessionError } = await supabaseClient
+          .from('sessoes')
+          .select('*')
+          .eq('id', sessionId)
+          .single();
+
+        if (sessionError) throw sessionError;
+        state.session = session;
+
+        const { data: chapter, error: chapterError } = await supabaseClient
+          .from('capitulos')
+          .select('*')
+          .eq('id', session.capitulo_id)
+          .single();
+
+        if (chapterError) throw chapterError;
+        state.chapter = chapter;
+
+        await loadParticipants();
+        await loadActions();
+        await loadAllSessionActions();
+
+        await initializeBossIfNeeded();
+
+        state.screen = session.status === 'finalizada'
+          ? 'final'
+          : session.status === 'aguardando'
+            ? 'waiting'
+            : 'playing';
+
+        state.loading = false;
+        setConnection(`Conectado · sessão ${session.codigo}`, 'ok');
+        render();
+      } catch (err) {
+        state.loading = false;
+        setError(`Falha ao carregar estado da sessão: ${err.message || err}`);
+      }
+    }
+
+    async function loadParticipants() {
+      if (!state.session) return;
+
+      const { data: joins, error: joinsError } = await supabaseClient
+        .from('participantes_sessao')
+        .select('*')
+        .eq('sessao_id', state.session.id)
+        .order('entrou_em', { ascending: true });
+
+      if (joinsError) throw joinsError;
+
+      const personagemIds = [...new Set((joins || []).map(item => item.personagem_id).filter(Boolean))];
+      let charactersById = {};
+
+      if (personagemIds.length) {
+        const { data: chars, error: charsError } = await supabaseClient
+          .from('personagens')
+          .select('*')
+          .in('id', personagemIds);
+
+        if (charsError) throw charsError;
+        charactersById = Object.fromEntries((chars || []).map(char => [char.id, char]));
+      }
+
+      state.participants = (joins || []).map(join => ({
+        ...join,
+        personagem: charactersById[join.personagem_id] || null
+      }));
+    }
+
+    async function loadActions() {
+      if (!state.session) return;
+
+      const { data, error } = await supabaseClient
+        .from('acoes_jogador')
+        .select('*')
+        .eq('sessao_id', state.session.id)
+        .eq('evento_index', state.session.evento_atual_index)
+        .order('criado_em', { ascending: true });
+
+      if (error) throw error;
+      state.actions = data || [];
+    }
+
+    async function loadAllSessionActions() {
+      if (!state.session) return;
+
+      const { data, error } = await supabaseClient
+        .from('acoes_jogador')
+        .select('*')
+        .eq('sessao_id', state.session.id)
+        .order('criado_em', { ascending: true });
+
+      if (error) throw error;
+      state.allSessionActions = data || [];
+    }
+
+    async function initializeBossIfNeeded() {
+      const event = currentEvent();
+      if (!state.session || !event || event.tipo !== 'chefao') return;
+      if (state.session.chefao_estado && typeof state.session.chefao_estado.pv_atual !== 'undefined') return;
+
+      const chefaoEstado = {
+        pv_atual: Number(event.pv_max),
+        pv_max: Number(event.pv_max),
+        dd: Number(event.dd),
+        rodada_atual: 1,
+        rodada_inicio_em: new Date().toISOString()
+      };
+
+      const { data, error } = await supabaseClient
+        .from('sessoes')
+        .update({ chefao_estado: chefaoEstado })
+        .eq('id', state.session.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      state.session = data;
+    }
+
+    async function subscribeToSession(sessionId) {
+      await cleanupChannels();
+
+      const channel = supabaseClient
+        .channel(`adaptia-mestre-${sessionId}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'participantes_sessao',
+          filter: `sessao_id=eq.${sessionId}`
+        }, async () => {
+          try {
+            await loadParticipants();
+            render();
+          } catch (err) {
+            setError(`Falha ao atualizar participantes em tempo real: ${err.message || err}`);
+          }
+        })
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'acoes_jogador',
+          filter: `sessao_id=eq.${sessionId}`
+        }, async () => {
+          try {
+            await loadActions();
+            await loadAllSessionActions();
+            render();
+          } catch (err) {
+            setError(`Falha ao atualizar ações em tempo real: ${err.message || err}`);
+          }
+        })
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'sessoes',
+          filter: `id=eq.${sessionId}`
+        }, async (payload) => {
+          try {
+            state.session = payload.new;
+            await loadParticipants();
+            await loadActions();
+            await loadAllSessionActions();
+            await initializeBossIfNeeded();
+            state.screen = state.session.status === 'finalizada'
+              ? 'final'
+              : state.session.status === 'aguardando'
+                ? 'waiting'
+                : 'playing';
+            render();
+          } catch (err) {
+            setError(`Falha ao sincronizar sessão em tempo real: ${err.message || err}`);
+          }
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') setConnection(`Realtime ativo · ${state.session?.codigo || 'sessão'}`, 'ok');
+          if (status === 'CHANNEL_ERROR') setConnection('Realtime com erro', 'bad');
+          if (status === 'TIMED_OUT') setConnection('Realtime expirou', 'bad');
+          if (status === 'CLOSED') setConnection('Realtime fechado', 'idle');
+        });
+
+      state.channels.push(channel);
+    }
+
+    async function cleanupChannels() {
+      const channels = [...state.channels];
+      state.channels = [];
+      for (const channel of channels) {
+        try { await supabaseClient.removeChannel(channel); } catch (_) {}
+      }
+    }
+
+    async function startSession() {
+      if (!state.session || !state.participants.length) return;
+      clearError();
+      state.busy = true;
+      render();
+
+      const { error } = await supabaseClient
+        .from('sessoes')
+        .update({ status: 'em_andamento' })
+        .eq('id', state.session.id);
+
+      state.busy = false;
+
+      if (error) {
+        setError(`Não foi possível iniciar a sessão: ${error.message}`);
+        return;
+      }
+
+      addMessage('📜 Sessão iniciada. Que os dados rolem e os prazos sobrevivam.');
+      await loadFullState(state.session.id);
+    }
+
+    function getCurrentRoundActions() {
+      const event = currentEvent();
+      if (!event || event.tipo !== 'chefao') return state.actions;
+      const start = bossRoundStart();
+      if (!start) return state.actions;
+      const startMs = new Date(start).getTime();
+      return state.actions.filter(action => new Date(action.criado_em).getTime() >= startMs);
+    }
+
+    function getActionForParticipant(participant) {
+      const event = currentEvent();
+      const source = event?.tipo === 'chefao' ? getCurrentRoundActions() : state.actions;
+      return source.find(action => action.personagem_id === participant.personagem_id) || null;
+    }
+
+    function allConnectedDecided() {
+      if (!state.participants.length) return false;
+      return state.participants.every(participant => Boolean(getActionForParticipant(participant)));
+    }
+
+    async function simulateAction(participantId) {
+      const participant = state.participants.find(item => item.personagem_id === participantId);
+      const character = participant?.personagem;
+      const event = currentEvent();
+
+      if (!participant || !character || !event || !state.session) return;
+      if (getActionForParticipant(participant)) return;
+
+      clearError();
+      state.busy = true;
+      render();
+
+      try {
+        let payload;
+
+        // Simulação temporária para testes enquanto o app Controle ainda não existe.
+        // Remover esta função quando o Controle real dos jogadores for implementado.
+        if (event.tipo === 'evento') {
+          const decision = Math.random() < 0.7 ? 'enfrentar' : 'ignorar';
+          if (decision === 'enfrentar') {
+            const die = rollD20();
+            const total = die + modifier(character, event.atributo);
+            payload = {
+              sessao_id: state.session.id,
+              personagem_id: character.id,
+              evento_index: state.session.evento_atual_index,
+              decisao: decision,
+              resultado_dado: die,
+              resultado_total: total,
+              sucesso: total >= Number(event.dd)
+            };
+            addMessage(`🎲 ${character.nome} simulou ${decision}: ${die} + ${modifier(character, event.atributo)} = ${total}.`);
+          } else {
+            payload = {
+              sessao_id: state.session.id,
+              personagem_id: character.id,
+              evento_index: state.session.evento_atual_index,
+              decisao: decision,
+              resultado_dado: null,
+              resultado_total: null,
+              sucesso: null
+            };
+            addMessage(`☕ ${character.nome} decidiu ignorar este caos corporativo.`);
+          }
+        } else {
+          const roll = Math.random();
+          const decision = roll < 0.6 ? 'atacar' : roll < 0.85 ? 'apoiar' : 'recuar';
+          if (decision === 'atacar') {
+            const attr = CLASS_PRIMARY_ATTRIBUTE[character.classe] || 'Resiliência';
+            const die = rollD20();
+            const mod = modifier(character, attr);
+            const total = die + mod;
+            payload = {
+              sessao_id: state.session.id,
+              personagem_id: character.id,
+              evento_index: state.session.evento_atual_index,
+              decisao: decision,
+              resultado_dado: die,
+              resultado_total: total,
+              sucesso: total >= Number(event.dd)
+            };
+            addMessage(`⚔️ ${character.nome} atacou com ${attr}: ${die} + ${mod} = ${total}.`);
+          } else {
+            payload = {
+              sessao_id: state.session.id,
+              personagem_id: character.id,
+              evento_index: state.session.evento_atual_index,
+              decisao: decision,
+              resultado_dado: null,
+              resultado_total: null,
+              sucesso: null
+            };
+            addMessage(decision === 'apoiar'
+              ? `🤝 ${character.nome} decidiu apoiar a rodada.`
+              : `🛡️ ${character.nome} recuou nesta rodada.`);
+          }
+        }
+
+        const { error } = await supabaseClient.from('acoes_jogador').insert(payload);
+        if (error) throw error;
+
+        await loadActions();
+        await loadAllSessionActions();
+      } catch (err) {
+        setError(`Falha ao simular jogada: ${err.message || err}`);
+      } finally {
+        state.busy = false;
+        render();
+      }
+    }
+
+    async function updateCharacter(characterId, patch) {
+      const { error } = await supabaseClient
+        .from('personagens')
+        .update(patch)
+        .eq('id', characterId);
+      if (error) throw error;
+    }
+
+    async function updateAction(actionId, patch) {
+      const { error } = await supabaseClient
+        .from('acoes_jogador')
+        .update(patch)
+        .eq('id', actionId);
+      if (error) throw error;
+    }
+
+    function applyLevelUps(character, nextXp) {
+      let level = Number(character.nivel || 1);
+      const leveled = [];
+      while (nextXp >= level * 20) {
+        level += 1;
+        leveled.push(level);
+      }
+      return { level, leveled };
+    }
+
+    async function advanceAfterCurrentEvent(chefaoEstado = null) {
+      const currentIndex = state.session.evento_atual_index;
+      const nextIndex = currentIndex + 1;
+      const events = state.chapter?.eventos || [];
+
+      if (nextIndex >= events.length) {
+        const { error } = await supabaseClient
+          .from('sessoes')
+          .update({ status: 'finalizada', chefao_estado: null })
+          .eq('id', state.session.id);
+        if (error) throw error;
+        addMessage('🏁 Sessão finalizada. O almoço venceu por pouco.');
+        return;
+      }
+
+      const nextEvent = events[nextIndex];
+      let nextBossState = null;
+
+      if (nextEvent.tipo === 'chefao') {
+        nextBossState = {
+          pv_atual: Number(nextEvent.pv_max),
+          pv_max: Number(nextEvent.pv_max),
+          dd: Number(nextEvent.dd),
+          rodada_atual: 1,
+          rodada_inicio_em: new Date().toISOString()
+        };
+      } else {
+        nextBossState = chefaoEstado;
+      }
+
+      const { error } = await supabaseClient
+        .from('sessoes')
+        .update({
+          evento_atual_index: nextIndex,
+          chefao_estado: nextBossState
+        })
+        .eq('id', state.session.id);
+
+      if (error) throw error;
+      addMessage(`➡️ Avançando para o evento ${nextIndex + 1}.`);
+    }
+
+    async function resolveCommonEvent() {
+      const event = currentEvent();
+      if (!event || event.tipo !== 'evento') return;
+      if (!allConnectedDecided()) {
+        setError('Ainda há jogadores aguardando decisão. Simule ou aguarde as ações antes de avançar.');
+        return;
+      }
+
+      clearError();
+      state.busy = true;
+      render();
+
+      try {
+        await loadParticipants();
+        await loadActions();
+
+        const charactersById = Object.fromEntries(state.participants.map(item => [item.personagem_id, item.personagem]).filter(item => item[1]));
+
+        for (const action of state.actions) {
+          const character = charactersById[action.personagem_id];
+          if (!character) continue;
+
+          let xpGain = 0;
+          let damage = 0;
+          let nextPv = Number(character.pv_atual || 0);
+
+          if (action.decisao === 'enfrentar' && action.sucesso === true) {
+            xpGain = Number(event.xp_sucesso || 0);
+            addMessage(`✅ ${character.nome} superou o evento e ganhou ${xpGain} XP.`);
+
+            if (Math.random() < Number(event.loot_chance || 0)) {
+              addMessage(`🎁 Loot encontrado por ${character.nome}!`);
+            }
+          }
+
+          if (action.decisao === 'enfrentar' && action.sucesso === false) {
+            xpGain = Number(event.xp_fracasso || 0);
+            damage = rollDie(4);
+            nextPv = Math.max(0, nextPv - damage);
+            addMessage(`💥 ${character.nome} falhou, ganhou ${xpGain} XP e sofreu ${damage} de dano.`);
+            if (nextPv === 0) addMessage(`💀 ${character.nome} está Fora de Cena.`);
+          }
+
+          if (action.decisao === 'ignorar') {
+            xpGain = 3;
+            addMessage(`☕ ${character.nome} ignorou o evento e ganhou ${xpGain} XP de participação.`);
+          }
+
+          const nextXp = Number(character.xp_atual || 0) + xpGain;
+          const { level, leveled } = applyLevelUps(character, nextXp);
+
+          for (const newLevel of leveled) {
+            addMessage(`🎉 ${character.nome} subiu para o nível ${newLevel}!`);
+          }
+
+          await updateCharacter(character.id, {
+            xp_atual: nextXp,
+            nivel: level,
+            pv_atual: nextPv
+          });
+
+          await updateAction(action.id, {
+            xp_ganho: xpGain,
+            dano_sofrido: damage
+          });
+        }
+
+        await advanceAfterCurrentEvent(null);
+        await loadFullState(state.session.id);
+      } catch (err) {
+        setError(`Falha ao resolver evento comum: ${err.message || err}`);
+      } finally {
+        state.busy = false;
+        render();
+      }
+    }
+
+    async function resolveBossRound() {
+      const event = currentEvent();
+      if (!event || event.tipo !== 'chefao') return;
+      if (!allConnectedDecided()) {
+        setError('Ainda há jogadores sem ação nesta rodada de chefão. Simule ou aguarde antes de resolver.');
+        return;
+      }
+
+      clearError();
+      state.busy = true;
+      render();
+
+      try {
+        await loadParticipants();
+        await loadActions();
+        await loadAllSessionActions();
+
+        const roundActions = getCurrentRoundActions();
+        const charactersById = Object.fromEntries(state.participants.map(item => [item.personagem_id, item.personagem]).filter(item => item[1]));
+        let bossState = { ...(state.session.chefao_estado || {}) };
+        let bossPv = Number(bossState.pv_atual ?? event.pv_max);
+
+        for (const action of roundActions) {
+          const character = charactersById[action.personagem_id];
+          if (!character) continue;
+
+          if (action.decisao === 'atacar' && action.sucesso === true) {
+            const damage = Math.max(1, classModifier(character));
+            bossPv = Math.max(0, bossPv - damage);
+            addMessage(`⚔️ ${character.nome} acertou o chefão e causou ${damage} de dano.`);
+          }
+
+          if (action.decisao === 'atacar' && action.sucesso === false) {
+            addMessage(`🌀 ${character.nome} atacou, mas a Hidra fez pose de cliente indeciso e escapou.`);
+          }
+
+          if (action.decisao === 'apoiar') {
+            addMessage(`🤝 ${character.nome} apoiou a equipe nesta rodada.`);
+          }
+
+          if (action.decisao === 'recuar') {
+            addMessage(`🛡️ ${character.nome} recuou para reorganizar o briefing.`);
+          }
+        }
+
+        if (bossPv > 0 && roundActions.length) {
+          const targetAction = roundActions[Math.floor(Math.random() * roundActions.length)];
+          const target = charactersById[targetAction.personagem_id];
+          if (target) {
+            const die = rollD20();
+            const resMod = modifier(target, 'Resiliência');
+            const total = die + resMod;
+            const resisted = total >= Number(bossState.dd ?? event.dd);
+            addMessage(`🐉 Contra-ataque em ${target.nome}: ${die} + ${resMod} = ${total} vs DD ${bossState.dd ?? event.dd}.`);
+
+            if (!resisted) {
+              const damage = rollDiceExpression(event.dano_contra_ataque);
+              const nextPv = Math.max(0, Number(target.pv_atual || 0) - damage);
+              await updateCharacter(target.id, { pv_atual: nextPv });
+              await updateAction(targetAction.id, {
+                dano_sofrido: Number(targetAction.dano_sofrido || 0) + damage
+              });
+              addMessage(`💥 ${target.nome} falhou na resistência e sofreu ${damage} de dano.`);
+              if (nextPv === 0) addMessage(`💀 ${target.nome} está Fora de Cena.`);
+            } else {
+              addMessage(`🛡️ ${target.nome} resistiu ao contra-ataque.`);
+            }
+          }
+        }
+
+        if (bossPv <= 0) {
+          addMessage(`🏆 ${event.titulo} foi derrotada!`);
+
+          const allBossActions = state.allSessionActions.filter(action =>
+            action.evento_index === state.session.evento_atual_index &&
+            ['atacar', 'apoiar'].includes(action.decisao)
+          );
+          const eligibleIds = [...new Set(allBossActions.map(action => action.personagem_id))];
+          const xpEach = eligibleIds.length ? Math.floor(Number(event.xp_total || 0) / eligibleIds.length) : 0;
+
+          for (const personagemId of eligibleIds) {
+            const participant = state.participants.find(item => item.personagem_id === personagemId);
+            const character = participant?.personagem;
+            if (!character) continue;
+
+            const nextXp = Number(character.xp_atual || 0) + xpEach;
+            const { level, leveled } = applyLevelUps(character, nextXp);
+
+            await updateCharacter(character.id, {
+              xp_atual: nextXp,
+              nivel: level
+            });
+
+            const firstAction = allBossActions.find(action => action.personagem_id === personagemId);
+            if (firstAction) {
+              await updateAction(firstAction.id, {
+                xp_ganho: Number(firstAction.xp_ganho || 0) + xpEach
+              });
+            }
+
+            addMessage(`⭐ ${character.nome} recebeu ${xpEach} XP pela vitória contra o chefão.`);
+            for (const newLevel of leveled) {
+              addMessage(`🎉 ${character.nome} subiu para o nível ${newLevel}!`);
+            }
+
+            if (Math.random() < Number(event.loot_chance || 0)) {
+              addMessage(`🎁 Loot encontrado por ${character.nome}!`);
+            }
+          }
+
+          await advanceAfterCurrentEvent(null);
+        } else {
+          bossState = {
+            ...bossState,
+            pv_atual: bossPv,
+            pv_max: Number(bossState.pv_max ?? event.pv_max),
+            dd: Number(bossState.dd ?? event.dd),
+            rodada_atual: Number(bossState.rodada_atual || 1) + 1,
+            rodada_inicio_em: new Date().toISOString()
+          };
+
+          const { error } = await supabaseClient
+            .from('sessoes')
+            .update({ chefao_estado: bossState })
+            .eq('id', state.session.id);
+
+          if (error) throw error;
+          addMessage(`🔁 Chefão ainda de pé. Rodada ${bossState.rodada_atual} iniciada.`);
+        }
+
+        await loadFullState(state.session.id);
+      } catch (err) {
+        setError(`Falha ao resolver rodada de chefão: ${err.message || err}`);
+      } finally {
+        state.busy = false;
+        render();
+      }
+    }
+
+    async function resetToCreate() {
+      await cleanupChannels();
+      localStorage.removeItem('adaptia_mestre_sessao_id');
+      state.session = null;
+      state.chapter = null;
+      state.participants = [];
+      state.actions = [];
+      state.allSessionActions = [];
+      state.messages = [];
+      state.error = '';
+      state.screen = 'create';
+      setConnection('Pronto para nova sessão', 'idle');
+      render();
+    }
+
+    function playerCard(participant, options = {}) {
+      const char = participant.personagem;
+      if (!char) return '';
+      const action = getActionForParticipant(participant);
+      const hpPct = hpPercent(char.pv_atual, char.pv_max);
+      const decisionLabel = action
+        ? `✅ decidiu: ${action.decisao}`
+        : '⏳ aguardando';
+      const tagClass = action ? 'ok' : 'wait';
+      const isOut = Number(char.pv_atual || 0) <= 0;
+
+      return `
+        <article class="player-card">
+          <div class="player-top">
+            <div>
+              <h3 class="player-name">${escapeHTML(char.nome)}</h3>
+              <div class="player-meta">${escapeHTML(char.linhagem)} · ${escapeHTML(char.classe)} · Nível ${Number(char.nivel || 1)}</div>
+            </div>
+            <span class="tag ${isOut ? 'danger' : tagClass}">${isOut ? '💀 Fora de Cena' : decisionLabel}</span>
+          </div>
+          <div>
+            <div class="player-meta">PV ${Number(char.pv_atual || 0)} / ${Number(char.pv_max || 0)} · XP ${Number(char.xp_atual || 0)}</div>
+            <div class="hpbar" aria-label="PV de ${escapeHTML(char.nome)}"><span style="width:${hpPct}%"></span></div>
+          </div>
+          ${!action && options.showSimulate ? `
+            <button class="btn-mini" onclick="simulateAction('${escapeHTML(char.id)}')" ${state.busy ? 'disabled' : ''}>
+              🎲 Simular jogada de ${escapeHTML(char.nome)}
+            </button>
+          ` : action ? renderActionDetails(action, char) : ''}
+        </article>
+      `;
+    }
+
+    function renderActionDetails(action, char) {
+      const result = action.resultado_dado
+        ? `<span class="tag info">🎲 ${action.resultado_dado} → total ${action.resultado_total}</span>`
+        : '';
+      const success = action.sucesso === true
+        ? '<span class="tag ok">sucesso</span>'
+        : action.sucesso === false
+          ? '<span class="tag danger">falha</span>'
+          : '';
+      return `<div style="display:flex;gap:8px;flex-wrap:wrap;">${result}${success}</div>`;
+    }
+
+    function renderError() {
+      return state.error ? `<div class="alert">⚠️ ${escapeHTML(state.error)}</div>` : '';
+    }
+
+    function renderCreateScreen() {
+      return `
+        <section class="panel hero">
+          <div class="panel-inner">
+            <span class="eyebrow">🧙 Tela do Mestre</span>
+            <h2 class="title">Abrir uma nova sessão</h2>
+            <p class="subtitle">
+              Crie o código da mesa, projete na TV e espere os jogadores entrarem pelo Controle. Por enquanto, a própria Tela do Mestre também simula jogadas para testar o fluxo.
+            </p>
+            <div class="actions">
+              <button class="btn-primary" onclick="createNewSession()" ${state.busy ? 'disabled' : ''}>
+                ${state.busy ? 'Criando portal...' : 'Criar Nova Sessão'}
+              </button>
+            </div>
+            <p class="small-note">Capítulo fixo de teste: <strong>O Briefing Amaldiçoado</strong>.</p>
+            ${renderError()}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderWaitingScreen() {
+      const count = state.participants.length;
+      return `
+        <section class="panel">
+          <div class="code-card">
+            <span class="eyebrow">🚪 Sala de espera</span>
+            <h2 class="session-code">${escapeHTML(state.session?.codigo || '----')}</h2>
+            <p>Jogadores digitam este código para entrar na sessão.</p>
+          </div>
+          <div class="panel-inner">
+            <div class="section-head">
+              <div>
+                <h2>Personagens conectados</h2>
+                <p>${count} aventureiro${count === 1 ? '' : 's'} na sala. O botão libera quando pelo menos 1 jogador entrar.</p>
+              </div>
+              <button class="btn-primary" onclick="startSession()" ${count === 0 || state.busy ? 'disabled' : ''}>
+                Iniciar Sessão
+              </button>
+            </div>
+            ${count ? `<div class="grid">${state.participants.map(p => playerCard(p)).join('')}</div>` : `<div class="empty-state">⏳ Nenhum personagem conectado ainda. O Mestre encara a sala vazia e o café esfria.</div>`}
+            ${renderError()}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderPlayingScreen() {
+      const event = currentEvent();
+      if (!event) {
+        return `
+          <section class="panel">
+            <div class="panel-inner">
+              <h2 class="title">Sem evento encontrado</h2>
+              <p class="subtitle">A sessão parece ter passado do último evento. Finalize ou crie uma nova sessão.</p>
+              ${renderError()}
+            </div>
+          </section>
+        `;
+      }
+
+      const isBoss = event.tipo === 'chefao';
+      const decided = state.participants.filter(p => getActionForParticipant(p)).length;
+      const total = state.participants.length;
+      const canResolve = total > 0 && decided === total && !state.busy;
+
+      return `
+        <div class="two-col">
+          <section class="panel">
+            <div class="panel-inner">
+              ${renderEventCard(event)}
+              <div class="controls-bar">
+                <div class="dice-wrap">
+                  <span class="dice" aria-hidden="true">d20</span>
+                  <span>${decided}/${total} decisões recebidas ${isBoss ? `· Rodada ${Number(state.session?.chefao_estado?.rodada_atual || 1)}` : ''}</span>
+                </div>
+                <button class="btn-primary" onclick="${isBoss ? 'resolveBossRound()' : 'resolveCommonEvent()'}" ${!canResolve ? 'disabled' : ''}>
+                  ${isBoss ? 'Resolver Rodada →' : 'Avançar →'}
+                </button>
+              </div>
+              ${!canResolve ? `<p class="small-note">A resolução fica liberada quando todos os conectados tiverem decidido.</p>` : `<div class="success-note">Tudo pronto para resolver. O dado corporativo aguarda ordens.</div>`}
+              ${renderError()}
+            </div>
+          </section>
+
+          <aside class="panel">
+            <div class="panel-inner">
+              <div class="section-head">
+                <div>
+                  <h2>Jogadores</h2>
+                  <p>Estado de decisão em tempo real.</p>
+                </div>
+              </div>
+              ${state.participants.length ? `<div class="grid">${state.participants.map(p => playerCard(p, { showSimulate: true })).join('')}</div>` : `<div class="empty-state">Nenhum jogador conectado.</div>`}
+            </div>
+          </aside>
+        </div>
+        ${renderLogPanel()}
+      `;
+    }
+
+    function renderEventCard(event) {
+      if (event.tipo === 'chefao') {
+        const boss = state.session?.chefao_estado || { pv_atual: event.pv_max, pv_max: event.pv_max, dd: event.dd, rodada_atual: 1 };
+        const pct = hpPercent(boss.pv_atual, boss.pv_max);
+        return `
+          <article class="event-card">
+            <span class="event-type">🐉 Chefão</span>
+            <h2 class="event-title">${escapeHTML(event.titulo)}</h2>
+            <p class="narrative">${escapeHTML(event.narrativa)}</p>
+            <div class="boss-health">
+              <div class="boss-health-row">
+                <span>PV do Chefão</span>
+                <span>${Number(boss.pv_atual || 0)} / ${Number(boss.pv_max || event.pv_max)}</span>
+              </div>
+              <div class="hpbar boss"><span style="width:${pct}%"></span></div>
+            </div>
+            <div class="event-stats">
+              <div class="big-stat"><strong>${Number(event.dd)}</strong><span>DD de defesa</span></div>
+              <div class="big-stat"><strong>${escapeHTML(event.dano_contra_ataque)}</strong><span>Contra-ataque</span></div>
+              <div class="big-stat"><strong>${Number(event.xp_total)}</strong><span>XP total</span></div>
+            </div>
+          </article>
+        `;
+      }
+
+      return `
+        <article class="event-card">
+          <span class="event-type">📌 Evento ${Number(state.session?.evento_atual_index || 0) + 1}</span>
+          <h2 class="event-title">${escapeHTML(event.titulo)}</h2>
+          <p class="narrative">${escapeHTML(event.narrativa)}</p>
+          <div class="event-stats">
+            <div class="big-stat"><strong>${escapeHTML(event.atributo)}</strong><span>Atributo pedido</span></div>
+            <div class="big-stat"><strong>${Number(event.dd)}</strong><span>Dificuldade</span></div>
+            <div class="big-stat"><strong>${Number(event.xp_sucesso)}</strong><span>XP no sucesso</span></div>
+            <div class="big-stat"><strong>${Number(event.xp_fracasso)}</strong><span>XP na falha</span></div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderLogPanel() {
+      return `
+        <section class="panel">
+          <div class="panel-inner">
+            <div class="section-head">
+              <div>
+                <h2>Crônica da sessão</h2>
+                <p>Mensagens locais desta Tela do Mestre. Recarregar a página limpa este histórico visual.</p>
+              </div>
+            </div>
+            ${state.messages.length ? `<div class="log-stack">${state.messages.map(item => `<div class="log-item">${escapeHTML(item.text)}</div>`).join('')}</div>` : `<div class="empty-state">Nada aconteceu ainda. Suspeito, muito suspeito.</div>`}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderFinalScreen() {
+      const xpByCharacter = {};
+      for (const action of state.allSessionActions) {
+        xpByCharacter[action.personagem_id] = (xpByCharacter[action.personagem_id] || 0) + Number(action.xp_ganho || 0);
+      }
+
+      return `
+        <section class="panel">
+          <div class="panel-inner">
+            <span class="eyebrow">🏁 Resumo final</span>
+            <h2 class="title">Sessão finalizada</h2>
+            <p class="subtitle">O almoço termina, os personagens sobrevivem e o escopo... talvez.</p>
+            <div class="summary-grid" style="margin-top:28px;">
+              ${state.participants.map(participant => {
+                const char = participant.personagem;
+                if (!char) return '';
+                return `
+                  <article class="summary-card">
+                    <h3>${escapeHTML(char.nome)}</h3>
+                    <div class="player-meta">${escapeHTML(char.linhagem)} · ${escapeHTML(char.classe)}</div>
+                    <div class="summary-line"><span>XP ganho na sessão</span><strong>${Number(xpByCharacter[char.id] || 0)}</strong></div>
+                    <div class="summary-line"><span>Nível final</span><strong>${Number(char.nivel || 1)}</strong></div>
+                    <div class="summary-line"><span>PV final</span><strong>${Number(char.pv_atual || 0)} / ${Number(char.pv_max || 0)}</strong></div>
+                  </article>
+                `;
+              }).join('')}
+            </div>
+            <div class="actions">
+              <button class="btn-primary" onclick="resetToCreate()">Nova Sessão</button>
+            </div>
+            ${renderError()}
+          </div>
+        </section>
+        ${renderLogPanel()}
+      `;
+    }
+
+    function renderLoading() {
+      return `
+        <section class="panel loading">
+          <div class="panel-inner">
+            <span class="dice" aria-hidden="true">d20</span>
+            <p>Carregando grimório do Mestre...</p>
+          </div>
+        </section>
+      `;
+    }
+
+    function render() {
+      if (state.loading) {
+        app.innerHTML = renderLoading();
+        return;
+      }
+
+      if (state.screen === 'waiting') {
+        app.innerHTML = renderWaitingScreen();
+        return;
+      }
+
+      if (state.screen === 'playing') {
+        app.innerHTML = renderPlayingScreen();
+        return;
+      }
+
+      if (state.screen === 'final') {
+        app.innerHTML = renderFinalScreen();
+        return;
+      }
+
+      app.innerHTML = renderCreateScreen();
+    }
+
+    async function boot() {
+      setConnection('Conectando ao Supabase...', 'idle');
+      render();
+
+      const savedSessionId = localStorage.getItem('adaptia_mestre_sessao_id');
+      if (!savedSessionId) {
+        setConnection('Pronto para criar sessão', 'idle');
+        return;
+      }
+
+      try {
+        await loadFullState(savedSessionId);
+        await subscribeToSession(savedSessionId);
+      } catch (err) {
+        localStorage.removeItem('adaptia_mestre_sessao_id');
+        setError(`Não foi possível restaurar a sessão anterior: ${err.message || err}`);
+      }
+    }
+
+    window.createNewSession = createNewSession;
+    window.startSession = startSession;
+    window.simulateAction = simulateAction;
+    window.resolveCommonEvent = resolveCommonEvent;
+    window.resolveBossRound = resolveBossRound;
+    window.resetToCreate = resetToCreate;
+
+    boot();
+  </script>
+</body>
+</html>

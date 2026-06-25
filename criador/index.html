@@ -1,0 +1,2105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Criador de Personagem | RPG Adaptia</title>
+  <meta name="description" content="Criador de personagem interativo para o RPG Adaptia, com linhagens, classes, sinergias, atributos, PV, mana e ficha final calculada automaticamente." />
+  <meta property="og:title" content="Criador de Personagem | RPG Adaptia" />
+  <meta property="og:description" content="Monte sua ficha de RPG da Adaptia em poucos passos." />
+  <meta property="og:type" content="website" />
+  <style>
+    :root {
+      --bg: #120d17;
+      --bg-2: #21152b;
+      --surface: rgba(255, 250, 235, 0.08);
+      --surface-strong: rgba(255, 250, 235, 0.14);
+      --paper: #fff6df;
+      --paper-soft: #f7e8c5;
+      --ink: #2a1a11;
+      --muted: #d6c7a7;
+      --text: #fff8e8;
+      --gold: #f3c95b;
+      --gold-2: #ffe48a;
+      --green: #9be38d;
+      --danger: #ff7d7d;
+      --blue: #86d9ff;
+      --purple: #cda7ff;
+      --shadow: 0 18px 60px rgba(0,0,0,.35);
+      --radius: 22px;
+      --radius-sm: 14px;
+      --focus: 0 0 0 4px rgba(243,201,91,.32);
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(243,201,91,.18), transparent 28%),
+        radial-gradient(circle at 86% 18%, rgba(134,217,255,.14), transparent 28%),
+        radial-gradient(circle at 50% 100%, rgba(205,167,255,.12), transparent 34%),
+        linear-gradient(145deg, #100a15 0%, #1d1228 52%, #0c1019 100%);
+      line-height: 1.55;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .14;
+      background-image:
+        linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 75%);
+      z-index: -1;
+    }
+
+    a { color: inherit; }
+    button, input { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+
+    .app-shell {
+      width: min(100%, var(--max));
+      margin: 0 auto;
+      padding: 18px 14px 96px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(243,201,91,.22);
+      border-radius: 28px;
+      padding: 22px 18px;
+      background:
+        linear-gradient(135deg, rgba(255,246,223,.12), rgba(255,246,223,.04)),
+        linear-gradient(135deg, rgba(58,32,75,.84), rgba(23,16,31,.92));
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "⚔️  KPI  ✦  Mana  ✦  Briefing  ✦  Loot";
+      position: absolute;
+      right: -44px;
+      top: 24px;
+      transform: rotate(12deg);
+      color: rgba(255,228,138,.16);
+      font-weight: 900;
+      letter-spacing: .08em;
+      font-size: 1.2rem;
+      white-space: nowrap;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      margin: 0 0 10px;
+      padding: 6px 10px;
+      border: 1px solid rgba(243,201,91,.32);
+      border-radius: 999px;
+      color: var(--gold-2);
+      background: rgba(0,0,0,.16);
+      font-size: .82rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      line-height: 1.08;
+      font-family: Georgia, "Times New Roman", serif;
+      letter-spacing: -.025em;
+    }
+
+    h1 {
+      max-width: 850px;
+      font-size: clamp(2.05rem, 9vw, 4.8rem);
+      color: var(--gold-2);
+      text-shadow: 0 2px 0 rgba(0,0,0,.26), 0 0 32px rgba(243,201,91,.18);
+    }
+
+    .hero p {
+      max-width: 780px;
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .notice {
+      margin-top: 14px;
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border: 1px dashed rgba(255,228,138,.45);
+      border-radius: 18px;
+      background: rgba(255,228,138,.09);
+      color: #fff0bf;
+      font-size: .93rem;
+    }
+
+    .progress-card {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      margin: 14px 0;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 22px;
+      background: rgba(18,13,23,.88);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(0,0,0,.22);
+    }
+
+    .progress-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: .88rem;
+      color: var(--muted);
+    }
+
+    .step-name {
+      color: var(--gold-2);
+      font-weight: 900;
+    }
+
+    .progress-track {
+      position: relative;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,.12);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--gold), var(--blue));
+      transition: width .25s ease;
+    }
+
+    .step-dots {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .dot {
+      min-width: 0;
+      padding: 8px 6px;
+      border-radius: 12px;
+      text-align: center;
+      font-size: .72rem;
+      color: rgba(255,248,232,.64);
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.08);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dot.active {
+      color: #21150a;
+      background: linear-gradient(135deg, var(--gold-2), var(--gold));
+      border-color: transparent;
+      font-weight: 900;
+    }
+
+    main {
+      display: grid;
+      gap: 16px;
+    }
+
+    .panel {
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 28px;
+      padding: 18px;
+      background:
+        linear-gradient(180deg, rgba(255,246,223,.10), rgba(255,246,223,.05)),
+        rgba(18,13,23,.72);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .panel-header h2 {
+      color: var(--gold-2);
+      font-size: clamp(1.55rem, 7vw, 2.45rem);
+    }
+
+    .panel-header p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .name-box {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    label {
+      color: var(--gold-2);
+      font-weight: 900;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      min-height: 58px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(243,201,91,.35);
+      outline: none;
+      color: var(--text);
+      background: rgba(0,0,0,.22);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+      font-size: 1.05rem;
+    }
+
+    input[type="text"]:focus,
+    button:focus-visible,
+    .choice-card:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .choices-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .choice-card {
+      width: 100%;
+      text-align: left;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 20px;
+      padding: 15px;
+      color: var(--text);
+      background:
+        linear-gradient(135deg, rgba(255,246,223,.10), rgba(255,246,223,.035)),
+        rgba(255,255,255,.04);
+      cursor: pointer;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+
+    .choice-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(243,201,91,.44);
+      background:
+        linear-gradient(135deg, rgba(255,246,223,.14), rgba(255,246,223,.05)),
+        rgba(255,255,255,.06);
+    }
+
+    .choice-card.selected {
+      border-color: var(--gold);
+      background:
+        radial-gradient(circle at 12% 0%, rgba(255,228,138,.32), transparent 34%),
+        linear-gradient(135deg, rgba(243,201,91,.18), rgba(134,217,255,.08));
+      box-shadow: 0 0 0 2px rgba(243,201,91,.2), 0 18px 48px rgba(0,0,0,.25);
+    }
+
+    .choice-title {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .choice-title strong {
+      color: var(--gold-2);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.22rem;
+      line-height: 1.1;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.1);
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .pill.gold {
+      color: #24160b;
+      background: linear-gradient(135deg, var(--gold-2), var(--gold));
+    }
+
+    .pill.blue {
+      color: #071b25;
+      background: linear-gradient(135deg, #bfefff, var(--blue));
+    }
+
+    .bonus-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .bonus-list li {
+      padding: 7px 9px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.08);
+      color: #fff7de;
+      font-size: .84rem;
+      font-weight: 750;
+    }
+
+    .meta-row {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .meta-row span {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .synergy-box {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,228,138,.72);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(255,228,138,.38), transparent 32%),
+        linear-gradient(135deg, rgba(243,201,91,.22), rgba(255,255,255,.06));
+      box-shadow: 0 0 0 2px rgba(243,201,91,.14), 0 0 42px rgba(243,201,91,.24), var(--shadow);
+    }
+
+    .synergy-box::after {
+      content: "✦";
+      position: absolute;
+      right: 18px;
+      top: 12px;
+      color: rgba(255,228,138,.44);
+      font-size: 5rem;
+      line-height: 1;
+      animation: pulseGlow 1.7s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      from { transform: scale(.96) rotate(-6deg); opacity: .42; }
+      to { transform: scale(1.06) rotate(7deg); opacity: .88; }
+    }
+
+    .synergy-box h3 {
+      color: var(--gold-2);
+      font-size: clamp(1.5rem, 7vw, 2.4rem);
+      position: relative;
+      z-index: 1;
+    }
+
+    .synergy-box p {
+      margin: 0;
+      color: #fff2c4;
+      position: relative;
+      z-index: 1;
+    }
+
+    .points-toolbar {
+      position: sticky;
+      top: 106px;
+      z-index: 12;
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 20px;
+      background: rgba(18,13,23,.9);
+      backdrop-filter: blur(14px);
+    }
+
+    .points-left {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--gold-2);
+      font-weight: 950;
+      font-size: 1.05rem;
+    }
+
+    .points-hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    .attributes-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .attribute-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.11);
+      background: rgba(255,255,255,.055);
+    }
+
+    .attribute-info {
+      min-width: 0;
+    }
+
+    .attribute-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+      color: var(--text);
+      font-weight: 900;
+    }
+
+    .attribute-base {
+      display: block;
+      color: var(--muted);
+      font-size: .83rem;
+    }
+
+    .attribute-controls {
+      display: grid;
+      grid-template-columns: 46px minmax(46px, auto) 46px;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .stat-value {
+      min-width: 48px;
+      padding: 8px 8px;
+      border-radius: 13px;
+      text-align: center;
+      color: #1d130b;
+      background: var(--paper-soft);
+      font-weight: 950;
+      font-size: 1.08rem;
+    }
+
+    .round-btn {
+      width: 46px;
+      height: 46px;
+      border: 0;
+      border-radius: 15px;
+      cursor: pointer;
+      color: #251609;
+      background: linear-gradient(135deg, var(--gold-2), var(--gold));
+      font-weight: 1000;
+      font-size: 1.22rem;
+      box-shadow: 0 8px 18px rgba(0,0,0,.22);
+    }
+
+    .round-btn:disabled {
+      cursor: not-allowed;
+      opacity: .38;
+      box-shadow: none;
+    }
+
+    .nav-actions {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 30;
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 10px;
+      padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+      border-top: 1px solid rgba(255,255,255,.12);
+      background: rgba(18,13,23,.92);
+      backdrop-filter: blur(16px);
+    }
+
+    .btn {
+      min-height: 54px;
+      border: 0;
+      border-radius: 16px;
+      padding: 12px 16px;
+      cursor: pointer;
+      font-weight: 950;
+      letter-spacing: .01em;
+      transition: transform .16s ease, opacity .16s ease, box-shadow .16s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn:disabled { cursor: not-allowed; opacity: .46; transform: none; }
+
+    .btn-primary {
+      color: #221407;
+      background: linear-gradient(135deg, var(--gold-2), var(--gold));
+      box-shadow: 0 12px 24px rgba(243,201,91,.22);
+    }
+
+    .btn-secondary {
+      color: var(--text);
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+
+    .btn-blue {
+      color: #061923;
+      background: linear-gradient(135deg, #c8f2ff, var(--blue));
+    }
+
+    .error-msg {
+      display: none;
+      margin: 12px 0 0;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,125,125,.38);
+      border-radius: 14px;
+      color: #ffd1d1;
+      background: rgba(255,125,125,.1);
+      font-weight: 800;
+    }
+
+    .error-msg.show { display: block; }
+
+    .sheet {
+      overflow: hidden;
+      border-radius: 28px;
+      background: var(--paper);
+      color: var(--ink);
+      border: 1px solid rgba(243,201,91,.55);
+      box-shadow: var(--shadow);
+    }
+
+    .sheet-header {
+      position: relative;
+      overflow: hidden;
+      padding: 22px 18px;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(255,255,255,.22), transparent 28%),
+        linear-gradient(135deg, #5a3317, #2b182b 58%, #172433);
+      color: #fff4cf;
+    }
+
+    .sheet-header::after {
+      content: "Ficha Oficial de Almoço";
+      position: absolute;
+      right: -20px;
+      bottom: 10px;
+      transform: rotate(-8deg);
+      color: rgba(255,228,138,.22);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+    }
+
+    .sheet-header h2 {
+      color: var(--gold-2);
+      font-size: clamp(1.9rem, 8vw, 3rem);
+    }
+
+    .sheet-header p {
+      margin: 8px 0 0;
+      color: rgba(255,246,223,.82);
+    }
+
+    .sheet-body {
+      display: grid;
+      gap: 14px;
+      padding: 16px;
+      background:
+        linear-gradient(rgba(42,26,17,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(42,26,17,.04) 1px, transparent 1px),
+        var(--paper);
+      background-size: 24px 24px;
+    }
+
+    .summary-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .summary-card {
+      padding: 13px;
+      border-radius: 18px;
+      border: 1px solid rgba(92,55,25,.18);
+      background: rgba(255,255,255,.48);
+    }
+
+    .summary-card small {
+      display: block;
+      color: rgba(42,26,17,.66);
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 4px;
+      font-size: .72rem;
+    }
+
+    .summary-card strong,
+    .summary-card span {
+      display: block;
+      color: var(--ink);
+      font-weight: 950;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+      color: #5a3317;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.35rem;
+      font-weight: 950;
+    }
+
+    .final-attrs {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .final-attr {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 12px;
+      border: 1px solid rgba(92,55,25,.16);
+      border-radius: 14px;
+      background: rgba(255,255,255,.5);
+    }
+
+    .final-attr strong { color: var(--ink); }
+    .final-attr .num {
+      min-width: 42px;
+      padding: 5px 8px;
+      text-align: center;
+      border-radius: 10px;
+      background: #ead39f;
+      font-weight: 1000;
+    }
+    .final-attr .mod {
+      min-width: 58px;
+      padding: 5px 8px;
+      text-align: center;
+      border-radius: 999px;
+      background: #2b182b;
+      color: #fff4cf;
+      font-weight: 950;
+      font-size: .88rem;
+    }
+
+    .ability-box {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(92,55,25,.18);
+      background: rgba(255,255,255,.56);
+    }
+
+    .ability-box strong { color: #5a3317; }
+    .ability-box p { margin: 0; color: rgba(42,26,17,.78); }
+
+    .sheet-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      padding: 0 16px 16px;
+      background: var(--paper);
+    }
+
+
+
+    .status-box {
+      display: none;
+      margin: 14px 0 0;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(134,217,255,.32);
+      background: rgba(134,217,255,.09);
+      color: #dff7ff;
+      font-weight: 800;
+    }
+
+    .status-box.show { display: block; }
+    .status-box.error {
+      border-color: rgba(255,125,125,.45);
+      background: rgba(255,125,125,.12);
+      color: #ffd1d1;
+    }
+    .status-box.success {
+      border-color: rgba(155,227,141,.45);
+      background: rgba(155,227,141,.12);
+      color: #e4ffdc;
+    }
+
+    .resume-card {
+      display: grid;
+      gap: 16px;
+      align-items: center;
+      padding: 16px;
+      border: 1px solid rgba(243,201,91,.32);
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(243,201,91,.12), rgba(134,217,255,.06));
+    }
+
+    .resume-actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .code-highlight {
+      display: grid;
+      gap: 6px;
+      margin: 14px 0 0;
+      padding: 13px 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(243,201,91,.5);
+      background: rgba(243,201,91,.12);
+      color: #fff2c4;
+    }
+
+    .code-highlight strong {
+      font-size: clamp(1.45rem, 8vw, 2.4rem);
+      letter-spacing: .12em;
+      color: var(--gold-2);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    .appearance-layout {
+      display: grid;
+      gap: 16px;
+    }
+
+    .emblem-preview-card {
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid rgba(243,201,91,.24);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 50% 10%, rgba(243,201,91,.16), transparent 36%),
+        rgba(0,0,0,.16);
+    }
+
+    .emblem-preview-card svg,
+    .sheet-emblem svg,
+    .resume-emblem svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 14px 22px rgba(0,0,0,.28));
+    }
+
+    .emblem-preview-card svg { max-width: 280px; }
+    .resume-emblem svg { max-width: 180px; }
+
+    .appearance-controls {
+      display: grid;
+      gap: 14px;
+    }
+
+    .option-group {
+      display: grid;
+      gap: 10px;
+      padding: 13px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.11);
+      background: rgba(255,255,255,.055);
+    }
+
+    .option-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      color: var(--gold-2);
+      font-weight: 950;
+    }
+
+    .option-grid {
+      display: grid;
+      gap: 9px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .shape-btn,
+    .icon-btn,
+    .swatch-btn {
+      min-height: 56px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 16px;
+      cursor: pointer;
+      color: var(--text);
+      background: rgba(0,0,0,.18);
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+      font-weight: 900;
+    }
+
+    .shape-btn,
+    .icon-btn {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      align-items: center;
+      gap: 9px;
+      text-align: left;
+      padding: 8px 10px;
+    }
+
+    .shape-btn:hover,
+    .icon-btn:hover,
+    .swatch-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(243,201,91,.48);
+    }
+
+    .shape-btn.selected,
+    .icon-btn.selected,
+    .swatch-btn.selected {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(243,201,91,.18), 0 12px 28px rgba(0,0,0,.22);
+      background: rgba(243,201,91,.12);
+    }
+
+    .shape-btn svg,
+    .icon-btn svg {
+      width: 42px;
+      height: 42px;
+      display: block;
+    }
+
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .swatch-btn {
+      min-height: 54px;
+      padding: 6px;
+    }
+
+    .swatch-chip {
+      display: block;
+      height: 32px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.26);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.24);
+    }
+
+    .sheet-title-row {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .sheet-emblem {
+      width: 92px;
+      min-width: 92px;
+    }
+
+    .sheet-code {
+      display: inline-flex;
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      color: #24160b;
+      background: linear-gradient(135deg, var(--gold-2), var(--gold));
+      font-weight: 1000;
+      letter-spacing: .08em;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    .save-message {
+      margin: 0;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(134,217,255,.3);
+      background: rgba(134,217,255,.11);
+      color: #12313d;
+      font-weight: 900;
+    }
+
+    .save-message.error {
+      border-color: rgba(180,40,40,.28);
+      background: rgba(180,40,40,.10);
+      color: #6e1b1b;
+    }
+
+    @media (min-width: 780px) {
+      .appearance-layout {
+        grid-template-columns: 340px 1fr;
+        align-items: start;
+      }
+      .resume-card {
+        grid-template-columns: 200px 1fr;
+      }
+      .resume-actions {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .hidden { display: none !important; }
+
+    @media (min-width: 680px) {
+      .app-shell { padding: 28px 20px 112px; }
+      .hero { padding: 32px; }
+      .panel { padding: 28px; }
+      .choices-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .final-attrs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .sheet-actions { grid-template-columns: 1fr 1fr; }
+      .nav-actions {
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(100%, var(--max));
+        border: 1px solid rgba(255,255,255,.12);
+        border-bottom: 0;
+        border-radius: 24px 24px 0 0;
+      }
+    }
+
+    @media (min-width: 980px) {
+      .choices-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .final-attrs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .attribute-row { grid-template-columns: 1fr 220px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+
+    @media print {
+      @page { margin: 12mm; }
+      body {
+        background: white !important;
+        color: #24160b !important;
+      }
+      body::before,
+      .hero,
+      .progress-card,
+      .nav-actions,
+      .panel:not(.print-panel),
+      .sheet-actions,
+      .no-print {
+        display: none !important;
+      }
+      .app-shell {
+        width: 100%;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      main { display: block; }
+      .print-panel {
+        display: block !important;
+        border: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        box-shadow: none !important;
+      }
+      .sheet {
+        box-shadow: none !important;
+        border: 2px solid #5a3317 !important;
+        break-inside: avoid;
+      }
+      .sheet-header {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .sheet-body,
+      .sheet-actions {
+        background: #fff6df !important;
+      }
+      .final-attrs {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero no-print">
+      <p class="eyebrow">🧙 Adaptia Tools • v1</p>
+      <h1>Criador de Personagem</h1>
+      <p>Monte sua ficha em poucos passos: escolha nome, linhagem, classe, veja se rolou sinergia, distribua seus 10 pontos livres e receba a ficha final calculada automaticamente.</p>
+      <div class="notice" role="note">
+        <strong>📌 Só diversão de almoço.</strong>
+        <span>Este criador faz parte do RPG interno de Adaptia e não tem nenhuma relação com avaliação de performance real de ninguém.</span>
+      </div>
+    </header>
+
+    <section class="progress-card no-print" aria-label="Progresso do criador">
+      <div class="progress-top">
+        <span>Etapa <strong id="currentStepNumber">0</strong> de 6</span>
+        <span class="step-name" id="currentStepLabel">Nome</span>
+      </div>
+      <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="step-dots" id="stepDots"></div>
+    </section>
+
+    <main id="app" aria-live="polite"></main>
+  </div>
+
+  <div class="nav-actions no-print" id="navActions">
+    <button class="btn btn-secondary" id="backBtn" type="button">← Voltar</button>
+    <button class="btn btn-primary" id="nextBtn" type="button">Próximo →</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://ombgpykvguopgdcdiyqc.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_FbK97rXHFN_Y8xcQD7ZqEQ_rXWaOcgR';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const STORAGE_KEY = 'adaptia_codigo_ficha';
+
+    const ATTRIBUTES = ["Análise", "Precisão", "Lábia", "Criatividade", "Resiliência", "Instinto", "Improviso", "Empatia"];
+
+    const LINEAGES = [
+      { name: "Tráfego Pago", bonuses: { "Improviso": 3, "Análise": 2, "Precisão": 2, "Lábia": 1 } },
+      { name: "Copywriting", bonuses: { "Criatividade": 3, "Empatia": 2, "Lábia": 2, "Análise": 1 } },
+      { name: "Design", bonuses: { "Criatividade": 3, "Precisão": 2, "Instinto": 2, "Empatia": 1 } },
+      { name: "CS / Atendimento", bonuses: { "Empatia": 3, "Resiliência": 2, "Lábia": 2, "Instinto": 1 } },
+      { name: "Comercial", bonuses: { "Lábia": 3, "Instinto": 2, "Resiliência": 2, "Empatia": 1 } },
+      { name: "RH", bonuses: { "Empatia": 3, "Resiliência": 2, "Lábia": 2, "Análise": 1 } },
+      { name: "Audiovisual", bonuses: { "Criatividade": 3, "Precisão": 2, "Improviso": 2, "Instinto": 1 } },
+      { name: "Sites", bonuses: { "Análise": 3, "Precisão": 2, "Resiliência": 2, "Instinto": 1 } }
+    ];
+
+    const CLASSES = [
+      { name: "Guerreiro", bonuses: { "Resiliência": 3, "Precisão": 2 }, pvBonus: 8, resource: "Recarga", mainAttribute: "Resiliência", item: "Espada Longa", initialSkill: "\"Golpe Decisivo\" — +1d6 de dano num ataque | Recarga: 2 eventos" },
+      { name: "Bárbaro", bonuses: { "Resiliência": 3, "Improviso": 2 }, pvBonus: 8, resource: "Recarga", mainAttribute: "Resiliência", item: "Machado de Batalha", initialSkill: "\"Avanço Bruto\" — ignora uma Desvantagem | Recarga: 2 eventos" },
+      { name: "Paladino", bonuses: { "Precisão": 3, "Análise": 2 }, pvBonus: 6, resource: "Recarga", mainAttribute: "Precisão", item: "Escudo Sagrado", initialSkill: "\"Postura Defensiva\" — reduz à metade o próximo dano recebido | Recarga: 2 eventos" },
+      { name: "Monge", bonuses: { "Instinto": 3, "Resiliência": 2 }, pvBonus: 6, resource: "Recarga", mainAttribute: "Instinto", item: "Manoplas de Combate", initialSkill: "\"Passo Leve\" — repete um teste de Improviso ou Instinto | Recarga: 2 eventos" },
+      { name: "Mago", bonuses: { "Análise": 3, "Precisão": 2 }, pvBonus: 0, resource: "Mana", mainAttribute: "Análise", item: "Cajado Arcano", initialSkill: "\"Disparo Arcano\" — dano fixo igual ao modificador de Análise, sem rolar dado | Custo: 4 Mana" },
+      { name: "Bruxo", bonuses: { "Improviso": 3, "Análise": 2 }, pvBonus: 0, resource: "Mana", mainAttribute: "Improviso", item: "Adaga de Pacto", initialSkill: "\"Distorção\" — força um reroll em qualquer teste | Custo: 4 Mana" },
+      { name: "Arqueiro", bonuses: { "Precisão": 3, "Instinto": 2 }, pvBonus: 2, resource: "Recarga", mainAttribute: "Precisão", item: "Arco Longo", initialSkill: "\"Tiro Calculado\" — vê o resultado do dado antes de decidir usar ou re-rolar uma vez | Recarga: 2 eventos" },
+      { name: "Bardo", bonuses: { "Lábia": 3, "Criatividade": 2 }, pvBonus: 0, resource: "Mana", mainAttribute: "Lábia", item: "Alaúde", initialSkill: "\"Verso Inspirador\" — dá Vantagem a um colega no próximo teste dele | Custo: 3 Mana" },
+      { name: "Feiticeiro", bonuses: { "Instinto": 3, "Improviso": 2 }, pvBonus: 0, resource: "Mana", mainAttribute: "Instinto", item: "Anel de Foco", initialSkill: "\"Centelha Instável\" — rola 2d20 e soma os dois, mas sofre 1d4 de dano se sair algum 1 | Custo: 5 Mana" },
+      { name: "Ladino", bonuses: { "Improviso": 3, "Lábia": 2 }, pvBonus: 2, resource: "Recarga", mainAttribute: "Improviso", item: "Adagas Duplas", initialSkill: "\"Esquiva Ágil\" — anula totalmente um dano recebido | Recarga: 2 eventos" },
+      { name: "Sacerdote", bonuses: { "Lábia": 3, "Resiliência": 2 }, pvBonus: 4, resource: "Mana", mainAttribute: "Lábia", item: "Cajado Sagrado", initialSkill: "\"Cura Leve\" — recupera PV igual ao modificador de Empatia em um colega | Custo: 4 Mana" },
+      { name: "Druida", bonuses: { "Criatividade": 3, "Instinto": 2 }, pvBonus: 4, resource: "Mana", mainAttribute: "Criatividade", item: "Cajado de Carvalho", initialSkill: "\"Forma Adaptativa\" — troca o atributo usado num teste por outro | Custo: 3 Mana" }
+    ];
+
+    const SYNERGIES = [
+      { lineage: "Tráfego Pago", className: "Arqueiro", attribute: "Precisão", bonus: 1, ability: "\"Mira Calibrada\" (refaz 1 rolagem de execução por sessão)" },
+      { lineage: "Copywriting", className: "Bardo", attribute: "Lábia", bonus: 1, ability: "\"Discurso Afiado\" (vence empate de persuasão automaticamente)" },
+      { lineage: "Design", className: "Druida", attribute: "Criatividade", bonus: 1, ability: "\"Forma Perfeita\" (refaz 1 resultado visual por sessão)" },
+      { lineage: "CS / Atendimento", className: "Sacerdote", attribute: "Resiliência", bonus: 1, ability: "\"Voz que Acalma\" (cura 1 efeito ruim de um colega por sessão)" },
+      { lineage: "Comercial", className: "Ladino", attribute: "Lábia", bonus: 1, ability: "\"Fechador Nato\" (vantagem em qualquer negociação do jogo)" },
+      { lineage: "RH", className: "Monge", attribute: "Resiliência", bonus: 1, ability: "\"Mediador Zen\" (ignora 1 efeito de caos do grupo por sessão)" },
+      { lineage: "Audiovisual", className: "Feiticeiro", attribute: "Improviso", bonus: 1, ability: "\"Take Único\" (refaz 1 rolagem ruim por sessão)" },
+      { lineage: "Sites", className: "Mago", attribute: "Precisão", bonus: 1, ability: "\"Código Impecável\" (ignora 1 \"bug\"/falha por sessão)" }
+    ];
+
+    const SHAPES = [
+      { value: "circulo", label: "Círculo" },
+      { value: "escudo", label: "Escudo" },
+      { value: "hexagono", label: "Hexágono" },
+      { value: "losango", label: "Losango" }
+    ];
+
+    const COLORS = [
+      { value: "#f4c96b", label: "Dourado" },
+      { value: "#5fb3a3", label: "Teal" },
+      { value: "#d8625a", label: "Vermelho" },
+      { value: "#9c6df4", label: "Violeta" },
+      { value: "#5a8fd8", label: "Azul" },
+      { value: "#6fae6f", label: "Verde" },
+      { value: "#d87fb0", label: "Rosa" },
+      { value: "#b9bcc4", label: "Prata" }
+    ];
+
+    const ICONS = {
+      espada: "Espada",
+      cajado: "Cajado",
+      arco: "Arco",
+      adaga: "Adaga",
+      alaude: "Alaúde",
+      escudo: "Escudo",
+      punho: "Punho",
+      estrela: "Estrela",
+      raio: "Raio",
+      cafe: "Xícara de café"
+    };
+
+    const CLASS_ICON = {
+      "Guerreiro": "espada",
+      "Bárbaro": "espada",
+      "Mago": "cajado",
+      "Bruxo": "cajado",
+      "Sacerdote": "cajado",
+      "Druida": "cajado",
+      "Arqueiro": "arco",
+      "Ladino": "adaga",
+      "Bardo": "alaude",
+      "Paladino": "escudo",
+      "Monge": "punho",
+      "Feiticeiro": "estrela"
+    };
+
+    const STEP_LABELS = ["Nome", "Linhagem", "Classe", "Sinergia", "Aparência", "Pontos", "Ficha"];
+    const app = document.getElementById("app");
+    const backBtn = document.getElementById("backBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const navActions = document.getElementById("navActions");
+
+    const state = {
+      screen: "loading",
+      step: 0,
+      name: "",
+      lineage: null,
+      className: null,
+      appearance: null,
+      freePoints: Object.fromEntries(ATTRIBUTES.map(attr => [attr, 0])),
+      savedCandidate: null,
+      loadedCharacter: null,
+      savedCharacter: null,
+      isSaving: false,
+      saveError: "",
+      saveStatus: "",
+      globalError: ""
+    };
+
+    function byName(list, name) {
+      return list.find(item => item.name === name);
+    }
+
+    function getSynergy() {
+      if (!state.lineage || !state.className) return null;
+      return SYNERGIES.find(s => s.lineage === state.lineage && s.className === state.className) || null;
+    }
+
+    function formatBonuses(bonuses) {
+      return Object.entries(bonuses).map(([attr, value]) => `<li>${attr} +${value}</li>`).join("");
+    }
+
+    function emptyAttributes(value = 0) {
+      return Object.fromEntries(ATTRIBUTES.map(attr => [attr, value]));
+    }
+
+    function getBaseAttributes() {
+      const values = emptyAttributes(3);
+      const lineage = byName(LINEAGES, state.lineage);
+      const selectedClass = byName(CLASSES, state.className);
+      const synergy = getSynergy();
+
+      if (lineage) Object.entries(lineage.bonuses).forEach(([attr, bonus]) => values[attr] += bonus);
+      if (selectedClass) Object.entries(selectedClass.bonuses).forEach(([attr, bonus]) => values[attr] += bonus);
+      if (synergy) values[synergy.attribute] += synergy.bonus;
+      return values;
+    }
+
+    function getFinalAttributes() {
+      const values = getBaseAttributes();
+      ATTRIBUTES.forEach(attr => values[attr] += state.freePoints[attr]);
+      return values;
+    }
+
+    function modifier(value) {
+      return Math.floor(Number(value || 0) / 2);
+    }
+
+    function spentPoints() {
+      return ATTRIBUTES.reduce((sum, attr) => sum + state.freePoints[attr], 0);
+    }
+
+    function remainingPoints() {
+      return 10 - spentPoints();
+    }
+
+    function getMaxPV(finalAttrs, selectedClass) {
+      return 10 + (modifier(finalAttrs["Resiliência"]) * 2) + selectedClass.pvBonus;
+    }
+
+    function getMaxMana(finalAttrs, selectedClass) {
+      return 8 + (modifier(finalAttrs[selectedClass.mainAttribute]) * 2);
+    }
+
+    function escapeHTML(text) {
+      return String(text ?? "").replace(/[&<>'"]/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "'": "&#039;",
+        '"': "&quot;"
+      }[char]));
+    }
+
+    function defaultAppearanceFor(lineage, className) {
+      return {
+        forma: "escudo",
+        cor: "#f4c96b",
+        icone: CLASS_ICON[className] || "estrela",
+        nivel_visual: 1
+      };
+    }
+
+    function ensureAppearanceDefaults() {
+      if (!state.appearance) state.appearance = defaultAppearanceFor(state.lineage, state.className);
+      state.appearance.nivel_visual = state.appearance.nivel_visual || 1;
+      if (!state.appearance.forma) state.appearance.forma = "escudo";
+      if (!state.appearance.cor) state.appearance.cor = "#f4c96b";
+      if (!state.appearance.icone) state.appearance.icone = CLASS_ICON[state.className] || "estrela";
+    }
+
+    function getClassIconOptions() {
+      const suggested = CLASS_ICON[state.className] || "estrela";
+      return [suggested, "raio", "cafe"];
+    }
+
+    function isDuplicateError(error) {
+      return error && (error.code === "23505" || String(error.message || "").toLowerCase().includes("duplicate"));
+    }
+
+    function generateFichaCode() {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let code = "";
+      for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+      return code;
+    }
+
+    async function initApp() {
+      const savedCode = localStorage.getItem(STORAGE_KEY);
+      if (!savedCode) {
+        state.screen = "wizard";
+        render();
+        return;
+      }
+
+      state.screen = "loading";
+      state.globalError = "Buscando ficha salva...";
+      render();
+
+      try {
+        const { data, error } = await supabaseClient
+          .from("personagens")
+          .select("*")
+          .eq("codigo_ficha", savedCode)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (!data) {
+          localStorage.removeItem(STORAGE_KEY);
+          state.screen = "wizard";
+          state.globalError = "Não encontrei a ficha salva neste navegador. Você pode criar uma nova ficha.";
+          render();
+          return;
+        }
+
+        state.savedCandidate = data;
+        state.screen = "resume";
+        state.globalError = "";
+        render();
+      } catch (error) {
+        state.screen = "wizard";
+        state.globalError = `Não consegui carregar sua ficha salva: ${error.message || error}`;
+        render();
+      }
+    }
+
+    function resetWizard(clearStorage = true) {
+      if (clearStorage) localStorage.removeItem(STORAGE_KEY);
+      state.screen = "wizard";
+      state.step = 0;
+      state.name = "";
+      state.lineage = null;
+      state.className = null;
+      state.appearance = null;
+      state.freePoints = Object.fromEntries(ATTRIBUTES.map(attr => [attr, 0]));
+      state.savedCandidate = null;
+      state.loadedCharacter = null;
+      state.savedCharacter = null;
+      state.isSaving = false;
+      state.saveError = "";
+      state.saveStatus = "";
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function continueSavedCharacter() {
+      state.loadedCharacter = state.savedCandidate;
+      state.savedCandidate = null;
+      state.screen = "wizard";
+      state.step = 6;
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function setStep(step) {
+      state.step = step;
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function nextStep() {
+      if (!validateCurrentStep()) return;
+      if (state.step === 2) {
+        ensureAppearanceDefaults();
+        setStep(getSynergy() ? 3 : 4);
+        return;
+      }
+      if (state.step === 6) return;
+      setStep(state.step + 1);
+    }
+
+    function previousStep() {
+      if (state.step === 0) return;
+      if (state.step === 4) {
+        setStep(getSynergy() ? 3 : 2);
+        return;
+      }
+      setStep(state.step - 1);
+    }
+
+    function showError(message) {
+      const error = document.getElementById("stepError");
+      if (!error) return;
+      error.textContent = message;
+      error.classList.add("show");
+    }
+
+    function validateCurrentStep() {
+      if (state.step === 0) {
+        const input = document.getElementById("characterName");
+        const name = input ? input.value.trim() : state.name.trim();
+        if (!name) {
+          showError("Digite o nome do personagem antes de avançar. Até o estagiário goblin precisa de nome.");
+          input && input.focus();
+          return false;
+        }
+        state.name = name;
+      }
+      if (state.step === 1 && !state.lineage) {
+        showError("Escolha uma linhagem para continuar.");
+        return false;
+      }
+      if (state.step === 2 && !state.className) {
+        showError("Escolha uma classe para continuar.");
+        return false;
+      }
+      if (state.step === 4) {
+        ensureAppearanceDefaults();
+        if (!state.appearance.forma || !state.appearance.cor || !state.appearance.icone) {
+          showError("Finalize o emblema antes de continuar.");
+          return false;
+        }
+      }
+      if (state.step === 5 && remainingPoints() !== 0) {
+        showError(`Distribua exatamente 10 pontos livres. Ainda restam ${remainingPoints()} ponto(s).`);
+        return false;
+      }
+      return true;
+    }
+
+    function renderProgress() {
+      const progressCard = document.querySelector(".progress-card");
+      if (state.screen === "loading" || state.screen === "resume") {
+        progressCard && progressCard.classList.add("hidden");
+        return;
+      }
+      progressCard && progressCard.classList.remove("hidden");
+      document.getElementById("currentStepNumber").textContent = state.step;
+      document.getElementById("currentStepLabel").textContent = STEP_LABELS[state.step];
+      document.getElementById("progressFill").style.width = `${(state.step / 6) * 100}%`;
+      document.getElementById("stepDots").innerHTML = STEP_LABELS.map((label, index) => `
+        <span class="dot ${index <= state.step ? "active" : ""}" title="Etapa ${index}: ${label}">${index}. ${label}</span>
+      `).join("");
+    }
+
+    function renderNav() {
+      if (state.screen !== "wizard" || state.step === 6) {
+        navActions.classList.add("hidden");
+        return;
+      }
+      navActions.classList.remove("hidden");
+      backBtn.disabled = state.step === 0;
+      nextBtn.textContent = state.step === 5 ? "Gerar ficha →" : "Próximo →";
+    }
+
+    function render() {
+      renderProgress();
+      renderNav();
+
+      if (state.screen === "loading") {
+        app.innerHTML = renderLoadingStep();
+        return;
+      }
+
+      if (state.screen === "resume") {
+        app.innerHTML = renderResumeStep();
+        bindStepEvents();
+        return;
+      }
+
+      const views = [renderNameStep, renderLineageStep, renderClassStep, renderSynergyStep, renderAppearanceStep, renderPointsStep, renderFinalSheet];
+      app.innerHTML = views[state.step]();
+      bindStepEvents();
+
+      if (state.step === 6 && !state.loadedCharacter && !state.savedCharacter && !state.isSaving) {
+        window.setTimeout(saveCharacterIfNeeded, 0);
+      }
+    }
+
+    function renderLoadingStep() {
+      return `
+        <section class="panel">
+          <div class="panel-header">
+            <h2>🔮 Consultando os pergaminhos...</h2>
+            <p>Estamos verificando se este navegador já tem uma ficha salva.</p>
+          </div>
+          <div class="status-box show">${escapeHTML(state.globalError || "Carregando...")}</div>
+        </section>
+      `;
+    }
+
+    function renderResumeStep() {
+      const character = state.savedCandidate;
+      const appearance = normalizeAppearance(character.aparencia, character.linhagem, character.classe);
+      return `
+        <section class="panel">
+          <div class="panel-header">
+            <h2>📜 Ficha encontrada neste navegador</h2>
+            <p>Você pode continuar com o personagem salvo ou limpar o vínculo local para criar uma ficha nova.</p>
+          </div>
+          <article class="resume-card">
+            <div class="resume-emblem">${renderEmblemSVG(appearance, character.linhagem, 180)}</div>
+            <div>
+              <h3>${escapeHTML(character.nome)}</h3>
+              <p>${escapeHTML(character.linhagem)} • ${escapeHTML(character.classe)}</p>
+              <div class="code-highlight">
+                <span>Código de ficha salvo</span>
+                <strong>${escapeHTML(character.codigo_ficha)}</strong>
+              </div>
+              <div class="resume-actions" style="margin-top:14px;">
+                <button class="btn btn-primary" type="button" id="continueSavedBtn">Continuar com ${escapeHTML(character.nome)}</button>
+                <button class="btn btn-secondary" type="button" id="createFreshBtn">Criar Novo Personagem</button>
+              </div>
+            </div>
+          </article>
+        </section>
+      `;
+    }
+
+    function renderNameStep() {
+      return `
+        <section class="panel">
+          <div class="panel-header">
+            <h2>🪪 Etapa 0 — Nome do personagem</h2>
+            <p>Comece batizando a lenda. Pode ser épico, engraçado, sério ou completamente inadmissível para uma reunião com cliente.</p>
+          </div>
+          ${state.globalError ? `<div class="status-box error show">${escapeHTML(state.globalError)}</div>` : ""}
+          <div class="name-box">
+            <label for="characterName">Nome do personagem</label>
+            <input id="characterName" type="text" maxlength="60" value="${escapeHTML(state.name)}" placeholder="Ex: Sir CPA Baixo, Maga do Briefing, Ladino do Prazo" autocomplete="off" />
+          </div>
+          <div class="error-msg" id="stepError"></div>
+        </section>
+      `;
+    }
+
+    function renderLineageStep() {
+      return `
+        <section class="panel">
+          <div class="panel-header">
+            <h2>🏰 Etapa 1 — Escolha a linhagem</h2>
+            <p>A linhagem representa o setor de origem na Adaptia. Todos os bônus são somados automaticamente.</p>
+          </div>
+          <div class="grid choices-grid">
+            ${LINEAGES.map(lineage => `
+              <button class="choice-card ${state.lineage === lineage.name ? "selected" : ""}" type="button" data-lineage="${escapeHTML(lineage.name)}" aria-pressed="${state.lineage === lineage.name}">
+                <div class="choice-title">
+                  <strong>${lineage.name}</strong>
+                  <span class="pill">Linhagem</span>
+                </div>
+                <ul class="bonus-list">${formatBonuses(lineage.bonuses)}</ul>
+              </button>
+            `).join("")}
+          </div>
+          <div class="error-msg" id="stepError"></div>
+        </section>
+      `;
+    }
+
+    function renderClassStep() {
+      return `
+        <section class="panel">
+          <div class="panel-header">
+            <h2>⚔️ Etapa 2 — Escolha a classe</h2>
+            <p>A classe define bônus de atributos, PV extra, recurso, item inicial e habilidade inicial.</p>
+          </div>
+          <div class="grid choices-grid">
+            ${CLASSES.map(characterClass => `
+              <button class="choice-card ${state.className === characterClass.name ? "selected" : ""}" type="button" data-class="${escapeHTML(characterClass.name)}" aria-pressed="${state.className === characterClass.name}">
+                <div class="choice-title">
+                  <strong>${characterClass.name}</strong>
+                  <span class="pill ${characterClass.resource === "Mana" ? "blue" : "gold"}">${characterClass.resource}</span>
+                </div>
+                <ul class="bonus-list">${formatBonuses(characterClass.bonuses)}</ul>
+                <div class="meta-row">
+                  <span>❤️ PV +${characterClass.pvBonus}</span>
+                  <span>🎒 Item: ${characterClass.item}</span>
+                  ${characterClass.resource === "Mana" ? `<span>✨ Atributo principal: ${characterClass.mainAttribute}</span>` : `<span>⏱️ Recurso: Recarga em eventos</span>`}
+                </div>
+              </button>
+            `).join("")}
+          </div>
+          <div class="error-msg" id="stepError"></div>
+        </section>
+      `;
+    }
+
+    function renderSynergyStep() {
+      const synergy = getSynergy();
+      if (!synergy) return "";
+      return `
+        <section class="panel">
+          <div class="panel-header">
+            <h2>✨ Etapa 3 — Sinergia desbloqueada</h2>
+            <p>A combinação escolhida bateu com uma sinergia oficial. O bônus já foi aplicado no cálculo dos atributos.</p>
+          </div>
+          <article class="synergy-box">
+            <h3>${state.lineage} + ${state.className}</h3>
+            <p><strong>Bônus extra:</strong> +${synergy.bonus} ${synergy.attribute}</p>
+            <p><strong>Habilidade exclusiva:</strong> ${synergy.ability}</p>
+          </article>
+        </section>
+      `;
+    }
+
+    function renderAppearanceStep() {
+      ensureAppearanceDefaults();
+      const iconOptions = getClassIconOptions();
+      return `
+        <section class="panel">
+          <div class="panel-header">
+            <h2>🛡️ Etapa 4 — Aparência do brasão</h2>
+            <p>Monte um emblema heráldico abstrato para sua ficha. É brasão geométrico, não retrato de personagem.</p>
+          </div>
+          <div class="appearance-layout">
+            <div class="emblem-preview-card">
+              ${renderEmblemSVG(state.appearance, state.lineage, 280)}
+              <span class="pill gold">Prévia ao vivo</span>
+            </div>
+            <div class="appearance-controls">
+              <div class="option-group">
+                <div class="option-title"><span>Forma do brasão</span><span class="pill">4 opções</span></div>
+                <div class="option-grid">
+                  ${SHAPES.map(shape => `
+                    <button class="shape-btn ${state.appearance.forma === shape.value ? "selected" : ""}" type="button" data-shape="${shape.value}">
+                      ${renderShapePreview(shape.value, state.appearance.cor)}
+                      <span>${shape.label}</span>
+                    </button>
+                  `).join("")}
+                </div>
+              </div>
+
+              <div class="option-group">
+                <div class="option-title"><span>Cor principal</span><span class="pill">Paleta fixa</span></div>
+                <div class="swatch-grid">
+                  ${COLORS.map(color => `
+                    <button class="swatch-btn ${state.appearance.cor === color.value ? "selected" : ""}" type="button" data-color="${color.value}" title="${color.label}" aria-label="Escolher cor ${color.label}">
+                      <span class="swatch-chip" style="background:${color.value}"></span>
+                    </button>
+                  `).join("")}
+                </div>
+              </div>
+
+              <div class="option-group">
+                <div class="option-title"><span>Ícone central</span><span class="pill">Classe + zoeira</span></div>
+                <div class="option-grid">
+                  ${iconOptions.map((icon, index) => `
+                    <button class="icon-btn ${state.appearance.icone === icon ? "selected" : ""}" type="button" data-icon="${icon}">
+                      ${renderIconPreview(icon)}
+                      <span>${ICONS[icon]}${index === 0 ? " • sugerido" : ""}</span>
+                    </button>
+                  `).join("")}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="error-msg" id="stepError"></div>
+        </section>
+      `;
+    }
+
+    function renderPointsStep() {
+      const base = getBaseAttributes();
+      const finalAttrs = getFinalAttributes();
+      return `
+        <section class="panel">
+          <div class="panel-header">
+            <h2>🎲 Etapa 5 — Distribua 10 pontos livres</h2>
+            <p>Use os botões para ajustar os atributos. Você só pode remover pontos adicionados nesta etapa.</p>
+          </div>
+          <div class="points-toolbar">
+            <div class="points-left">
+              <span>Pontos restantes</span>
+              <span id="pointsRemaining">${remainingPoints()}</span>
+            </div>
+            <p class="points-hint">Teto por atributo: 20. Para gerar a ficha, os 10 pontos precisam estar distribuídos.</p>
+          </div>
+          <div class="attributes-grid">
+            ${ATTRIBUTES.map(attr => {
+              const current = finalAttrs[attr];
+              const baseValue = base[attr];
+              const free = state.freePoints[attr];
+              const canMinus = free > 0;
+              const canPlus = remainingPoints() > 0 && current < 20;
+              return `
+                <div class="attribute-row">
+                  <div class="attribute-info">
+                    <span class="attribute-name">${attr} <span class="pill">mod ${modifier(current)}</span></span>
+                    <span class="attribute-base">Valor antes dos pontos livres: ${baseValue} • Pontos livres aplicados: ${free}</span>
+                  </div>
+                  <div class="attribute-controls">
+                    <button class="round-btn" type="button" data-dec="${attr}" ${canMinus ? "" : "disabled"} aria-label="Diminuir ${attr}">−</button>
+                    <span class="stat-value">${current}</span>
+                    <button class="round-btn" type="button" data-inc="${attr}" ${canPlus ? "" : "disabled"} aria-label="Aumentar ${attr}">+</button>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+          <div class="error-msg" id="stepError"></div>
+        </section>
+      `;
+    }
+
+    function normalizeAppearance(appearance, lineage, className) {
+      return {
+        ...defaultAppearanceFor(lineage, className),
+        ...(appearance || {}),
+        nivel_visual: Number((appearance && appearance.nivel_visual) || 1)
+      };
+    }
+
+    function buildSheetData() {
+      const record = state.loadedCharacter || state.savedCharacter;
+      if (record) {
+        const selectedClass = byName(CLASSES, record.classe) || CLASSES[0];
+        const attrs = record.atributos || emptyAttributes(3);
+        const appearance = normalizeAppearance(record.aparencia, record.linhagem, record.classe);
+        return {
+          record,
+          name: record.nome,
+          lineage: record.linhagem,
+          className: record.classe,
+          selectedClass,
+          attrs,
+          synergy: record.sinergia,
+          appearance,
+          maxPV: record.pv_max,
+          manaMax: record.mana_max,
+          code: record.codigo_ficha,
+          isSaved: true,
+          resourceText: record.recurso_tipo === "mana" ? `Mana máxima: ${record.mana_max}` : "Recurso: Recarga em eventos"
+        };
+      }
+
+      const attrs = getFinalAttributes();
+      const selectedClass = byName(CLASSES, state.className);
+      const maxPV = getMaxPV(attrs, selectedClass);
+      const manaMax = selectedClass.resource === "Mana" ? getMaxMana(attrs, selectedClass) : 0;
+      return {
+        record: null,
+        name: state.name,
+        lineage: state.lineage,
+        className: state.className,
+        selectedClass,
+        attrs,
+        synergy: getSynergy(),
+        appearance: normalizeAppearance(state.appearance, state.lineage, state.className),
+        maxPV,
+        manaMax,
+        code: "",
+        isSaved: false,
+        resourceText: selectedClass.resource === "Mana" ? `Mana máxima: ${manaMax}` : "Recurso: Recarga em eventos"
+      };
+    }
+
+    function synergyText(synergy) {
+      if (!synergy) return "Sem sinergia especial nesta combinação. Soma normal, vida que segue, reunião que continua.";
+      const attr = synergy.attribute || synergy.atributo;
+      const bonus = synergy.bonus || 1;
+      const ability = synergy.ability || synergy.habilidade || "Habilidade exclusiva";
+      return `+${bonus} ${attr} | ${ability}`;
+    }
+
+    function renderFinalSheet() {
+      const data = buildSheetData();
+      const saveMessage = data.isSaved
+        ? `<div class="code-highlight"><span>Seu código de ficha</span><strong>${escapeHTML(data.code)}</strong><span>Guarde ou tire print: é como você reconecta depois.</span></div>`
+        : state.saveError
+          ? `<p class="save-message error">${escapeHTML(state.saveError)}</p>`
+          : `<p class="save-message">${escapeHTML(state.saveStatus || "Salvando ficha no Supabase...")}</p>`;
+
+      return `
+        <section class="panel print-panel">
+          <article class="sheet" id="characterSheet">
+            <header class="sheet-header">
+              <div class="sheet-title-row">
+                <div class="sheet-emblem">${renderEmblemSVG(data.appearance, data.lineage, 92)}</div>
+                <div>
+                  <p class="eyebrow">Ficha final • Adaptia</p>
+                  <h2>${escapeHTML(data.name)}</h2>
+                  <p>${escapeHTML(data.lineage)} • ${escapeHTML(data.className)}</p>
+                  ${data.code ? `<span class="sheet-code">${escapeHTML(data.code)}</span>` : ""}
+                </div>
+              </div>
+            </header>
+            <div class="sheet-body">
+              ${saveMessage}
+              <div class="summary-grid">
+                <div class="summary-card"><small>Nome</small><strong>${escapeHTML(data.name)}</strong></div>
+                <div class="summary-card"><small>Linhagem</small><strong>${escapeHTML(data.lineage)}</strong></div>
+                <div class="summary-card"><small>Classe</small><strong>${escapeHTML(data.className)}</strong></div>
+                <div class="summary-card"><small>Item inicial</small><strong>${escapeHTML(data.selectedClass.item)}</strong></div>
+                <div class="summary-card"><small>PV máximo</small><strong>${data.maxPV}</strong></div>
+                <div class="summary-card"><small>Recurso</small><strong>${data.resourceText}</strong></div>
+                <div class="summary-card"><small>Bônus de PV da classe</small><strong>+${data.selectedClass.pvBonus}</strong></div>
+                <div class="summary-card"><small>Mod. Resiliência</small><strong>${modifier(data.attrs["Resiliência"])}</strong></div>
+              </div>
+
+              ${data.synergy ? `
+                <div class="ability-box">
+                  <strong>✨ Sinergia: ${escapeHTML(data.lineage)} + ${escapeHTML(data.className)}</strong>
+                  <p>${escapeHTML(synergyText(data.synergy))}</p>
+                </div>
+              ` : `
+                <div class="ability-box">
+                  <strong>Sinergia</strong>
+                  <p>${synergyText(null)}</p>
+                </div>
+              `}
+
+              <h3 class="section-title">🛡️ Emblema</h3>
+              <div class="ability-box">
+                <strong>${shapeLabel(data.appearance.forma)} • ${escapeHTML(ICONS[data.appearance.icone] || data.appearance.icone)} • nível visual ${data.appearance.nivel_visual}</strong>
+                <p>Textura automática da linhagem: ${escapeHTML(data.lineage)}.</p>
+              </div>
+
+              <h3 class="section-title">📊 Atributos finais</h3>
+              <div class="final-attrs">
+                ${ATTRIBUTES.map(attr => `
+                  <div class="final-attr">
+                    <strong>${attr}</strong>
+                    <span class="num">${data.attrs[attr]}</span>
+                    <span class="mod">mod ${modifier(data.attrs[attr])}</span>
+                  </div>
+                `).join("")}
+              </div>
+
+              <h3 class="section-title">🪄 Habilidade inicial de classe</h3>
+              <div class="ability-box">
+                <strong>${escapeHTML(data.className)}</strong>
+                <p>${escapeHTML(data.selectedClass.initialSkill)}</p>
+              </div>
+            </div>
+            <div class="sheet-actions no-print">
+              <button class="btn btn-secondary" type="button" id="resetBtn">Criar Novo Personagem</button>
+              <button class="btn btn-blue" type="button" id="printBtn">Imprimir/Salvar Ficha</button>
+            </div>
+          </article>
+        </section>
+      `;
+    }
+
+    function shapeLabel(value) {
+      return (SHAPES.find(shape => shape.value === value) || {}).label || value;
+    }
+
+    function buildCharacterPayload(code) {
+      const finalAttrs = getFinalAttributes();
+      const selectedClass = byName(CLASSES, state.className);
+      const maxPV = getMaxPV(finalAttrs, selectedClass);
+      const manaMax = selectedClass.resource === "Mana" ? getMaxMana(finalAttrs, selectedClass) : 0;
+      const synergy = getSynergy();
+      const sinergiaPayload = synergy ? {
+        linhagem: synergy.lineage,
+        classe: synergy.className,
+        atributo: synergy.attribute,
+        bonus: synergy.bonus,
+        habilidade: synergy.ability
+      } : null;
+
+      return {
+        codigo_ficha: code,
+        nome: state.name,
+        linhagem: state.lineage,
+        classe: state.className,
+        atributos: finalAttrs,
+        sinergia: sinergiaPayload,
+        nivel: 1,
+        xp_atual: 0,
+        pv_max: maxPV,
+        pv_atual: maxPV,
+        mana_max: manaMax,
+        mana_atual: manaMax,
+        recurso_tipo: selectedClass.resource === "Mana" ? "mana" : "recarga",
+        item_inicial: selectedClass.item,
+        inventario: [],
+        habilidades: [selectedClass.initialSkill],
+        aparencia: normalizeAppearance(state.appearance, state.lineage, state.className)
+      };
+    }
+
+    async function saveCharacterIfNeeded() {
+      if (state.isSaving || state.savedCharacter || state.loadedCharacter) return;
+      state.isSaving = true;
+      state.saveStatus = "Salvando ficha no Supabase...";
+      state.saveError = "";
+      render();
+
+      try {
+        let lastError = null;
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const code = generateFichaCode();
+          const payload = buildCharacterPayload(code);
+          const { data, error } = await supabaseClient
+            .from("personagens")
+            .insert(payload)
+            .select("*")
+            .single();
+
+          if (!error && data) {
+            localStorage.setItem(STORAGE_KEY, data.codigo_ficha);
+            state.savedCharacter = data;
+            state.isSaving = false;
+            state.saveStatus = "Ficha salva com sucesso.";
+            render();
+            return;
+          }
+
+          lastError = error;
+          if (!isDuplicateError(error)) break;
+        }
+        throw lastError || new Error("Não foi possível salvar a ficha depois de 5 tentativas.");
+      } catch (error) {
+        state.isSaving = false;
+        state.saveError = `Erro ao salvar no Supabase: ${error.message || error}. Se o erro mencionar aparencia, confirme se a coluna jsonb aparencia já existe na tabela personagens.`;
+        render();
+      }
+    }
+
+    function renderShapeElement(shape, attrs = {}) {
+      const fill = attrs.fill ?? "none";
+      const stroke = attrs.stroke ?? "none";
+      const strokeWidth = attrs.strokeWidth ?? 0;
+      const extra = attrs.extra ?? "";
+      if (shape === "circulo") return `<circle cx="100" cy="100" r="76" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" ${extra}/>`;
+      if (shape === "hexagono") return `<polygon points="100,18 168,58 168,142 100,182 32,142 32,58" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" ${extra}/>`;
+      if (shape === "losango") return `<polygon points="100,16 180,100 100,184 20,100" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" ${extra}/>`;
+      return `<path d="M100 18 L170 42 V92 C170 139 135 171 100 186 C65 171 30 139 30 92 V42 Z" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" ${extra}/>`;
+    }
+
+    function renderShapePreview(shape, color) {
+      return `<svg viewBox="0 0 200 200" aria-hidden="true">${renderShapeElement(shape, { fill: color, stroke: "rgba(255,255,255,.72)", strokeWidth: 7 })}</svg>`;
+    }
+
+    function renderIconPreview(icon) {
+      return `<svg viewBox="0 0 200 200" aria-hidden="true">${renderIcon(icon, "#fff4cf", 8)}</svg>`;
+    }
+
+    function renderIcon(icon, stroke = "#fff6df", strokeWidth = 7) {
+      const base = `fill="none" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"`;
+      const filled = `fill="none" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"`;
+      const shapes = {
+        espada: `<path ${base} d="M100 28 L116 104 L100 126 L84 104 Z"/><path ${base} d="M72 132 H128"/><path ${base} d="M100 126 V168"/><path ${base} d="M88 168 H112"/>`,
+        cajado: `<path ${base} d="M92 170 V54"/><path ${base} d="M92 54 C92 30 134 30 134 58 C134 84 96 80 112 54"/><path ${base} d="M75 96 H112"/>`,
+        arco: `<path ${base} d="M128 34 C72 66 72 134 128 166"/><path ${base} d="M128 34 V166"/><path ${base} d="M70 100 H138"/><path ${base} d="M138 100 L118 86"/><path ${base} d="M138 100 L118 114"/>`,
+        adaga: `<path ${base} d="M100 34 L116 92 L100 116 L84 92 Z"/><path ${base} d="M76 122 H124"/><path ${base} d="M100 116 V164"/><path ${base} d="M88 164 H112"/>`,
+        alaude: `<ellipse ${filled} cx="92" cy="118" rx="34" ry="42"/><path ${base} d="M112 86 L146 44"/><path ${base} d="M138 42 L158 62"/><path ${base} d="M92 84 V152"/><path ${base} d="M78 116 H106"/>`,
+        escudo: `<path ${base} d="M100 34 L150 54 V94 C150 128 126 152 100 166 C74 152 50 128 50 94 V54 Z"/><path ${base} d="M100 62 V132"/><path ${base} d="M72 92 H128"/>`,
+        punho: `<path ${base} d="M58 92 V72 C58 62 72 62 72 72 V90"/><path ${base} d="M72 90 V66 C72 56 88 56 88 66 V88"/><path ${base} d="M88 88 V64 C88 54 104 54 104 64 V90"/><path ${base} d="M104 90 V72 C104 62 120 62 120 72 V106"/><path ${base} d="M58 92 C52 106 58 146 92 158 C126 146 134 118 120 102"/>`,
+        estrela: `<path ${base} d="M100 32 L116 78 L164 78 L126 106 L140 154 L100 126 L60 154 L74 106 L36 78 L84 78 Z"/>`,
+        raio: `<path ${base} d="M112 28 L58 110 H96 L84 172 L144 86 H104 Z"/>`,
+        cafe: `<path ${base} d="M58 84 H122 V124 C122 144 106 158 88 158 C70 158 58 144 58 124 Z"/><path ${base} d="M122 96 H142 C154 96 154 124 122 124"/><path ${base} d="M68 58 C58 44 78 40 70 28"/><path ${base} d="M94 58 C84 44 104 40 96 28"/><path ${base} d="M52 170 H138"/>`
+      };
+      return shapes[icon] || shapes.estrela;
+    }
+
+    function renderLineagePattern(lineage) {
+      const key = String(lineage || "").toLowerCase();
+      if (key.includes("tráfego")) {
+        return Array.from({ length: 7 }, (_, i) => `<path d="M${20 + i * 28} 150 L${50 + i * 28} 120 M${42 + i * 28} 120 H${50 + i * 28} V128"/>`).join("");
+      }
+      if (key.includes("copy")) {
+        return Array.from({ length: 10 }, (_, i) => `<text x="${18 + (i % 5) * 38}" y="${52 + Math.floor(i / 5) * 72}" font-size="34" font-family="Georgia">“”</text>`).join("");
+      }
+      if (key.includes("design")) {
+        return `<path d="M20 50 H180 M20 90 H180 M20 130 H180 M20 170 H180 M50 20 V180 M90 20 V180 M130 20 V180 M170 20 V180"/>`;
+      }
+      if (key.includes("cs") || key.includes("atendimento")) {
+        return `<path d="M42 62 H116 Q130 62 130 76 V98 Q130 112 116 112 H88 L62 134 V112 H42 Q28 112 28 98 V76 Q28 62 42 62 Z"/><path d="M90 122 H160 Q172 122 172 134 V154 Q172 166 160 166 H136 L114 184 V166 H90 Q78 166 78 154 V134 Q78 122 90 122 Z"/>`;
+      }
+      if (key.includes("comercial")) {
+        return `<text x="42" y="78" font-size="42" font-family="Georgia">$</text><text x="124" y="150" font-size="42" font-family="Georgia">$</text><path d="M58 122 C78 102 92 102 110 122 M110 122 C128 102 144 102 160 122"/>`;
+      }
+      if (key === "rh") {
+        return Array.from({ length: 9 }, (_, i) => `<path d="M${38 + (i % 3) * 52} ${56 + Math.floor(i / 3) * 46} C${30 + (i % 3) * 52} ${44 + Math.floor(i / 3) * 46}, ${18 + (i % 3) * 52} ${62 + Math.floor(i / 3) * 46}, ${38 + (i % 3) * 52} ${76 + Math.floor(i / 3) * 46} C${58 + (i % 3) * 52} ${62 + Math.floor(i / 3) * 46}, ${46 + (i % 3) * 52} ${44 + Math.floor(i / 3) * 46}, ${38 + (i % 3) * 52} ${56 + Math.floor(i / 3) * 46} Z"/>`).join("");
+      }
+      if (key.includes("audiovisual")) {
+        return `<path d="M24 100 C44 60 64 140 84 100 S124 60 144 100 S176 140 196 100"/><path d="M10 130 C34 90 58 170 82 130 S130 90 154 130 S186 170 210 130"/>`;
+      }
+      return `<text x="34" y="78" font-size="44" font-family="ui-monospace, monospace">{ }</text><text x="86" y="152" font-size="44" font-family="ui-monospace, monospace">{ }</text>`;
+    }
+
+    function renderEmblemSVG(appearance, lineage, size = 260) {
+      const safeAppearance = normalizeAppearance(appearance, lineage, state.className);
+      const id = `clip-${Math.random().toString(36).slice(2)}`;
+      const frameStroke = safeAppearance.nivel_visual <= 3 ? "#b9bcc4" : "#f4c96b";
+      return `
+        <svg viewBox="0 0 200 200" width="${size}" height="${size}" role="img" aria-label="Emblema do personagem">
+          <defs>
+            <clipPath id="${id}">${renderShapeElement(safeAppearance.forma, { fill: "white" })}</clipPath>
+          </defs>
+          ${renderShapeElement(safeAppearance.forma, { fill: safeAppearance.cor, stroke: frameStroke, strokeWidth: 9 })}
+          <g clip-path="url(#${id})" opacity="0.11" stroke="#fff8e8" fill="#fff8e8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+            ${renderLineagePattern(lineage)}
+          </g>
+          <g opacity="0.95">${renderIcon(safeAppearance.icone, "#fff8e8", 7)}</g>
+          ${renderShapeElement(safeAppearance.forma, { fill: "none", stroke: "rgba(42,26,17,.42)", strokeWidth: 2 })}
+        </svg>
+      `;
+    }
+
+    function bindStepEvents() {
+      const continueSavedBtn = document.getElementById("continueSavedBtn");
+      if (continueSavedBtn) continueSavedBtn.addEventListener("click", continueSavedCharacter);
+
+      const createFreshBtn = document.getElementById("createFreshBtn");
+      if (createFreshBtn) createFreshBtn.addEventListener("click", () => resetWizard(true));
+
+      const nameInput = document.getElementById("characterName");
+      if (nameInput) {
+        nameInput.addEventListener("input", event => {
+          state.name = event.target.value;
+          const error = document.getElementById("stepError");
+          error && error.classList.remove("show");
+        });
+        nameInput.focus();
+      }
+
+      document.querySelectorAll("[data-lineage]").forEach(card => {
+        card.addEventListener("click", () => {
+          state.lineage = card.dataset.lineage;
+          render();
+        });
+      });
+
+      document.querySelectorAll("[data-class]").forEach(card => {
+        card.addEventListener("click", () => {
+          state.className = card.dataset.class;
+          state.freePoints = Object.fromEntries(ATTRIBUTES.map(attr => [attr, 0]));
+          state.appearance = defaultAppearanceFor(state.lineage, state.className);
+          render();
+        });
+      });
+
+      document.querySelectorAll("[data-shape]").forEach(button => {
+        button.addEventListener("click", () => {
+          ensureAppearanceDefaults();
+          state.appearance.forma = button.dataset.shape;
+          render();
+        });
+      });
+
+      document.querySelectorAll("[data-color]").forEach(button => {
+        button.addEventListener("click", () => {
+          ensureAppearanceDefaults();
+          state.appearance.cor = button.dataset.color;
+          render();
+        });
+      });
+
+      document.querySelectorAll("[data-icon]").forEach(button => {
+        button.addEventListener("click", () => {
+          ensureAppearanceDefaults();
+          state.appearance.icone = button.dataset.icon;
+          render();
+        });
+      });
+
+      document.querySelectorAll("[data-inc]").forEach(button => {
+        button.addEventListener("click", () => {
+          const attr = button.dataset.inc;
+          const current = getFinalAttributes()[attr];
+          if (remainingPoints() > 0 && current < 20) {
+            state.freePoints[attr] += 1;
+            render();
+          }
+        });
+      });
+
+      document.querySelectorAll("[data-dec]").forEach(button => {
+        button.addEventListener("click", () => {
+          const attr = button.dataset.dec;
+          if (state.freePoints[attr] > 0) {
+            state.freePoints[attr] -= 1;
+            render();
+          }
+        });
+      });
+
+      const resetBtn = document.getElementById("resetBtn");
+      if (resetBtn) resetBtn.addEventListener("click", () => resetWizard(true));
+
+      const printBtn = document.getElementById("printBtn");
+      if (printBtn) printBtn.addEventListener("click", () => window.print());
+    }
+
+    backBtn.addEventListener("click", previousStep);
+    nextBtn.addEventListener("click", nextStep);
+
+    initApp();
+  </script>
+</body>
+</html>
