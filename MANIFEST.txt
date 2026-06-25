@@ -1,11 +1,12 @@
-Adaptia RPG - Site pronto com Login v2
+Adaptia RPG - Inventario Passo 3
 
-Arquivos principais:
-- index.html                       Hub com login/cadastro, Meus Herois e importacao de ficha antiga
-- criador/index.html               Criador vinculado ao usuario logado e salvando owner_id
-- controle/index.html              Controle com escolha dos personagens do usuario logado
-- tela/index.html                  Tela do Mestre
-- regras/index.html                Livro de Regras
-- arquivo-antigo/criador-v1.html   Backup antigo
-- supabase-patch.sql               Patch completo do banco
-- .nojekyll                        Evita processamento Jekyll no GitHub Pages
+Estrutura:
+- index.html: Hub com login e Meus Herois
+- criador/index.html: Criador com login + item inicial salvo em personagem_itens sem equipar automaticamente
+- controle/index.html: Controle com login e selecao de personagem
+- tela/index.html: Tela do Mestre
+- regras/index.html: Livro de Regras
+- arquivo-antigo/criador-v1.html: backup antigo
+
+Observacao:
+Este pacote assume que o SQL do Inventario Passo 1 ja foi rodado no Supabase.

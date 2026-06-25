@@ -1936,6 +1936,44 @@
       };
     }
 
+    async function addInitialItemToInventory(character) {
+      const itemName = character?.item_inicial;
+      if (!itemName || !character?.id) {
+        return { ok: false, message: "personagem ou item inicial inválido" };
+      }
+
+      const { data: item, error: itemError } = await supabaseClient
+        .from("itens_catalogo")
+        .select("id, nome, slot")
+        .eq("nome", itemName)
+        .maybeSingle();
+
+      if (itemError) {
+        return { ok: false, message: itemError.message || "erro ao buscar item no catálogo" };
+      }
+
+      if (!item) {
+        return { ok: false, message: `item "${itemName}" não encontrado no catálogo` };
+      }
+
+      const { error: inventoryError } = await supabaseClient
+        .from("personagem_itens")
+        .insert({
+          personagem_id: character.id,
+          item_id: item.id,
+          quantidade: 1,
+          equipado: false,
+          slot_equipado: null,
+          usos_restantes: null
+        });
+
+      if (inventoryError) {
+        return { ok: false, message: inventoryError.message || "erro ao adicionar item ao inventário" };
+      }
+
+      return { ok: true, message: "item inicial adicionado ao inventário" };
+    }
+
     async function saveCharacterIfNeeded() {
       if (state.isSaving || state.savedCharacter || state.loadedCharacter) return;
       if (!state.user) {
@@ -1960,10 +1998,14 @@
             .single();
 
           if (!error && data) {
+            const inventoryResult = await addInitialItemToInventory(data);
             localStorage.setItem(STORAGE_KEY, data.codigo_ficha);
             state.savedCharacter = data;
             state.isSaving = false;
-            state.saveStatus = "Ficha salva com sucesso.";
+            state.saveStatus = inventoryResult.ok
+              ? "Ficha salva com sucesso. Item inicial adicionado ao inventário."
+              : `Ficha salva, mas o item inicial não entrou no inventário: ${inventoryResult.message}`;
+            if (!inventoryResult.ok) state.saveError = state.saveStatus;
             render();
             return;
           }
